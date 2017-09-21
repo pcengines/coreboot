@@ -37,14 +37,18 @@ fetch: $(project_dir)
 checkout: fetch
 	echo "    Checking out $(project_name) revision $(NAME-y) ($(TAG-y))"
 	cd $(project_dir); \
-		git checkout master; \
+		git checkout gerrit_19053; \
 		git branch -D coreboot 2>/dev/null; \
 		git checkout -b coreboot $(TAG-y)
 
 build: checkout
 	echo "    MAKE       $(project_name) $(NAME-y)"
-	$(MAKE) -C $(project_dir) all
-
+	if [ "$(CONFIG_MEMTEST_SPD)" = "y" ]; then
+		echo "	  NO SPD";
+		$(MAKE) -C $(project_dir) -DCB_NOSPD=1 all;
+	else
+		$(MAKE) -C $(project_dir) all
+	fi
 clean:
 	test -d $(project_dir) && $(MAKE) -C $(project_dir) clean || exit 0
 
