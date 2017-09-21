@@ -51,7 +51,7 @@ clean:
 	test -d $(project_dir) && $(MAKE) -C $(project_dir) clean || exit 0
 
 distclean:
-	#rm -rf $(project_dir)
+	rm -rf $(project_dir)
 
 print-repo-info:
 	echo "$(project_git_repo) $(project_dir)"
