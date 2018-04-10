@@ -52,34 +52,6 @@
 #include "bios_knobs.h"
 #include "s1_button.h"
 
-static int find_knob_index(const char *s, const char *pattern)
-{
-
-	int pattern_index = 0;
-	char *result = (char *) s;
-	char *lpattern = (char *) pattern;
-
-	while (*result && *pattern ) {
-		if ( *lpattern == 0)  // the pattern matches return the pointer
-			return pattern_index;
-		if ( *result == 0)  // We're at the end of the file content but don't have a patter match yet
-			return -1;
-		if (*result == *lpattern ) {
-			// The string matches, simply advance
-			result++;
-			pattern_index++;
-			lpattern++;
-		} else {
-			// The string doesn't match restart the pattern
-			result++;
-			pattern_index++;
-			lpattern = (char *) pattern;
-		}
-	}
-
-	return -1;
-}
-
 /**********************************************
  * enable the dedicated function in mainboard.
  **********************************************/
@@ -210,7 +182,7 @@ static void mainboard_final(void *chip_info) {
 		if ( !ReadFchGpio(APU2_BIOS_CONSOLE_GPIO) ) {
 
 			printk(BIOS_INFO, "S1 PRESSED\n");
-			
+
 			enable_console();
 		}
 	}
