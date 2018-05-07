@@ -16,7 +16,7 @@ Releases 4.5.x and 4.6.x are based on mainline support submitted in
 
 ## [v4.6.9] - 2018-05-11
 ### Added
-- IOMMU support enabled - [tl;dr](https://github.com/pcengines/apu2-documentation/tree/master/docs/iommu.md)
+- IOMMU support enabled, but not yet stable- [tl;dr](https://github.com/pcengines/apu2-documentation/tree/master/docs/iommu.md)
 
 ## [v4.6.8] - 2018-04-06
 ### Added
