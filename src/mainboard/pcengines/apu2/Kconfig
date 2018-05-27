@@ -125,4 +125,15 @@ config FORCE_MPCIE2_CLK
 	help
 	  If no card is attached to mPCIe2 slot, say N.
 
+config ENABLE_WATCHDOG_ON_BOOT
+	bool "Enable SP5100 watchdog on boot"
+	default n
+	help
+	  This enables the watchdog timer on boot.
+
+config WATCHDOG_TIMEOUT
+	int "Watchdog timeout value"
+	depends on ENABLE_WATCHDOG_ON_BOOT
+	default 300
+
 endif # BOARD_PCENGINES_APU2

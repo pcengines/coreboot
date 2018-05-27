@@ -126,6 +126,26 @@ void cache_as_ram_main(unsigned long bist, unsigned long cpu_init_detectedx)
 #endif
 
 		*((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG04)) = data;
+
+
+#if IS_ENABLED(CONFIG_ENABLE_WATCHDOG_ON_BOOT)
+		{
+			//
+			// configure the watchdog
+			//
+			volatile u32 *ptr = (u32 *)(ACPI_MMIO_BASE + WATCHDOG_BASE);
+
+			// enable
+			*ptr &= ~(1 << 3);
+			*ptr |= (1 << 0);
+			// configure timeout
+			*(ptr + 1) = (u16)CONFIG_WATCHDOG_TIMEOUT;
+			// trigger
+			*ptr |= (1 << 7);
+
+			printk(BIOS_ALERT, "Watchdog is enabled, state = 0x%x, time = %d\n", *ptr, *(ptr + 1));
+		}
+#endif
 	}
 
 	/* Halt if there was a built in self test failure */
