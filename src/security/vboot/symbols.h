@@ -20,4 +20,8 @@
 
 DECLARE_REGION(vboot2_work)
 
+extern u8 _vboot2_tpm_log[];
+extern u8 _evboot2_tpm_log[];
+#define _vboot2_tpm_log_size (_evboot2_tpm_log - _vboot2_tpm_log)
+
 #endif /* __VBOOT_SYMBOLS_H__ */

@@ -18,6 +18,9 @@
 #include <security/vboot/vboot_crtm.h>
 #include <security/vboot/misc.h>
 
+#define CBFS_PREFIX "CBFS: "
+#define FMAP_PREFIX "FMAP: "
+
 uint32_t vboot_init_crtm(void)
 {
 	struct prog bootblock = PROG_INIT(PROG_BOOTBLOCK, "bootblock");
@@ -26,13 +29,16 @@ uint32_t vboot_init_crtm(void)
 	struct prog romstage =
 		PROG_INIT(PROG_ROMSTAGE, CONFIG_CBFS_PREFIX "/romstage");
 
+	/* Clear TCPA PRERAM log */
+	tcpa_preram_log_clear();
+
 	/* measure bootblock from RO */
 	struct cbfsf bootblock_data;
 	struct region_device bootblock_fmap;
 	if (fmap_locate_area_as_rdev("BOOTBLOCK", &bootblock_fmap) == 0) {
 		if (tpm_measure_region(&bootblock_fmap,
 				       TPM_CRTM_PCR,
-				       prog_name(&bootblock)))
+				       FMAP_PREFIX "BOOTBLOCK"))
 			return VB2_ERROR_UNKNOWN;
 	} else {
 		if (cbfs_boot_locate(&bootblock_data,
@@ -40,8 +46,8 @@ uint32_t vboot_init_crtm(void)
 			cbfs_file_data(prog_rdev(&bootblock), &bootblock_data);
 
 			if (tpm_measure_region(prog_rdev(&bootblock),
-					       TPM_CRTM_PCR,
-					       prog_name(&bootblock)))
+					TPM_CRTM_PCR,
+					CBFS_PREFIX "bootblock"))
 				return VB2_ERROR_UNKNOWN;
 		} else {
 			printk(BIOS_INFO,
@@ -58,8 +64,8 @@ uint32_t vboot_init_crtm(void)
 			cbfs_file_data(prog_rdev(&romstage), &romstage_data);
 
 			if (tpm_measure_region(prog_rdev(&romstage),
-					       TPM_CRTM_PCR,
-					       CONFIG_CBFS_PREFIX "/romstage"))
+				TPM_CRTM_PCR,
+				CBFS_PREFIX CONFIG_CBFS_PREFIX "/romstage"))
 				return VB2_ERROR_UNKNOWN;
 		} else {
 			printk(BIOS_INFO,
@@ -77,8 +83,8 @@ uint32_t vboot_init_crtm(void)
 			cbfs_file_data(prog_rdev(&verstage), &verstage_data);
 
 			if (tpm_measure_region(prog_rdev(&verstage),
-					       TPM_CRTM_PCR,
-					       CONFIG_CBFS_PREFIX "/verstage"))
+				TPM_CRTM_PCR,
+				CBFS_PREFIX CONFIG_CBFS_PREFIX "/verstage"))
 				return VB2_ERROR_UNKNOWN;
 		} else {
 			printk(BIOS_INFO,
@@ -114,6 +120,7 @@ uint32_t vboot_measure_cbfs_hook(struct cbfsf *fh, const char *name)
 	uint32_t pcr_index;
 	uint32_t cbfs_type;
 	struct region_device rdev;
+	char prefix_name[TCPA_PCR_HASH_NAME];
 
 	if (!vb2_logic_executed())
 		return 0;
@@ -139,6 +146,9 @@ uint32_t vboot_measure_cbfs_hook(struct cbfsf *fh, const char *name)
 		break;
 	}
 
-	return tpm_measure_region(&rdev, pcr_index,
-				  name);
+	strncpy(prefix_name, CBFS_PREFIX, TCPA_PCR_HASH_NAME - 1);
+	strncpy(prefix_name + sizeof(CBFS_PREFIX),
+			name, TCPA_PCR_HASH_NAME - sizeof(CBFS_PREFIX) - 1);
+
+	return tpm_measure_region(&rdev, pcr_index, prefix_name);
 }

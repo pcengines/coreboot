@@ -263,6 +263,13 @@ config RO_REGION_ONLY
 	  Add a space delimited list of filenames that should only be in the
 	  RO section.
 
+config VBOOT_TCPA_LOG_RECOVERY
+	bool
+	default y if VBOOT_MEASURED_BOOT
+	help
+	  Enables TCPA log measurements recovery from bootblock to
+	  romstage.
+
 menu "GBB configuration"
 
 config GBB_HWID

@@ -202,7 +202,7 @@ uint32_t tpm_clear_and_reenable(void)
 	return TPM_SUCCESS;
 }
 
-uint32_t tpm_extend_pcr(int pcr, uint8_t *digest,
+uint32_t tpm_extend_pcr(int pcr, const char *digest_type, uint8_t *digest,
 			size_t digest_len, const char *name)
 {
 	uint32_t result;
@@ -214,6 +214,8 @@ uint32_t tpm_extend_pcr(int pcr, uint8_t *digest,
 	if (result != TPM_SUCCESS)
 		return result;
 
+	tcpa_log_add_table_entry(name, pcr, digest_type, digest, digest_len);
+
 	return TPM_SUCCESS;
 }
 
@@ -223,6 +225,7 @@ uint32_t tpm_measure_region(const struct region_device *rdev, uint8_t pcr,
 {
 	uint8_t digest[TPM_PCR_MAX_LEN], digest_len;
 	uint8_t buf[HASH_DATA_CHUNK_SIZE];
+	char hash_name[TCPA_PCR_HASH_LEN];
 	uint32_t result, offset;
 	size_t len;
 	struct vb2_digest_context ctx;
@@ -235,11 +238,13 @@ uint32_t tpm_measure_region(const struct region_device *rdev, uint8_t pcr,
 		printk(BIOS_ERR, "TPM: Can't initialize library.\n");
 		return result;
 	}
-	if (IS_ENABLED(CONFIG_TPM1))
+	if (IS_ENABLED(CONFIG_TPM1)) {
 		hash_alg = VB2_HASH_SHA1;
-	else /* CONFIG_TPM2 */
+	} else { /* CONFIG_TPM2 */
 		hash_alg = VB2_HASH_SHA256;
+	}
 
+	strncpy(hash_name, vb2_get_hash_algorithm_name(hash_alg), TCPA_PCR_HASH_LEN - 1);
 	digest_len = vb2_digest_size(hash_alg);
 	assert(digest_len <= sizeof(digest));
 	if (vb2_digest_init(&ctx, hash_alg)) {
@@ -267,7 +272,7 @@ uint32_t tpm_measure_region(const struct region_device *rdev, uint8_t pcr,
 		printk(BIOS_ERR, "TPM: Error finalizing hash.\n");
 		return TPM_E_HASH_ERROR;
 	}
-	result = tpm_extend_pcr(pcr, digest, digest_len, rname);
+	result = tpm_extend_pcr(pcr, hash_name, digest, digest_len, rname);
 	if (result != TPM_SUCCESS) {
 		printk(BIOS_ERR, "TPM: Extending hash into PCR failed.\n");
 		return result;
