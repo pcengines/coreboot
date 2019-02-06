@@ -15,7 +15,7 @@
 
 #include <AGESA.h>
 #include <northbridge/amd/pi/agesawrapper.h>
-
+#include "s3nv.h"
 
 static const PCIe_PORT_DESCRIPTOR PortList[] = {
 	{
@@ -99,4 +99,25 @@ OemCustomizeInitEarly (
 	InitEarly->GnbConfig.PcieComplexList = &PcieComplex;
 	InitEarly->PlatformConfig.CStateMode = CStateModeC6;
 	InitEarly->PlatformConfig.CpbMode = CpbModeAuto;
+
+}
+
+void OemPostParams(AMD_POST_PARAMS *PostParams)
+{
+	/*
+	 * Bank interleaving does not work on this platform.
+	 * Disable it so AGESA will return success.
+	 */
+	PostParams->MemConfig.EnableBankIntlv = FALSE;
+	PostParams->MemConfig.EnableEccFeature = TRUE;
+	PostParams->MemConfig.SaveMemContextCtl = TRUE;
+	GetMemS3NV(PostParams);
+
+	if (PostParams->MemConfig.MemContext.NvStorageSize)
+		PostParams->MemConfig.MemRestoreCtl = TRUE;
+}
+
+void OemAfterInitPost(AMD_POST_PARAMS *PostParams)
+{
+	save_memctx(&PostParams->MemConfig.MemContext);
 }
