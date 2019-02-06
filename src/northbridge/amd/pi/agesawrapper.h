@@ -56,6 +56,7 @@ const void *agesawrapper_locate_module (const CHAR8 name[8]);
 
 VOID OemCustomizeInitEarly (IN OUT AMD_EARLY_PARAMS *InitEarly);
 void OemPostParams(AMD_POST_PARAMS *PostParams);
+void OemAfterInitPost(AMD_POST_PARAMS *PostParams);
 #endif
 
 #endif /* _AGESAWRAPPER_H_ */

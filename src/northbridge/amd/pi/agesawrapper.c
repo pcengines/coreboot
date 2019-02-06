@@ -26,6 +26,7 @@
 #include <northbridge/amd/agesa/BiosCallOuts.h>
 
 void __weak OemPostParams(AMD_POST_PARAMS *PostParams) {}
+void __weak OemAfterInitPost(AMD_POST_PARAMS *PostParams) {}
 
 #define FILECODE UNASSIGNED_FILE_FILECODE
 
@@ -144,6 +145,8 @@ AGESA_STATUS agesawrapper_amdinitpost(void)
 	else
 		backup_top_of_low_cacheable(PostParams->MemConfig.Sub4GCacheTop);
 
+	OemAfterInitPost(PostParams);
+
 	printk(
 			BIOS_SPEW,
 			"setup_uma_memory: umamode %s\n",
@@ -164,6 +167,7 @@ AGESA_STATUS agesawrapper_amdinitpost(void)
 			(unsigned long)(PostParams->MemConfig.UmaSize) >> (20 - 16),
 			(unsigned long)(PostParams->MemConfig.UmaBase) << 16
 	);
+
 	if (status != AGESA_SUCCESS) agesawrapper_amdreadeventlog(PostParams->StdHeader.HeapStatus);
 	AmdReleaseStruct (&AmdParamStruct);
 
