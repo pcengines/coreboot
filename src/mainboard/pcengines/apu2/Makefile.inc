@@ -13,13 +13,17 @@
 # GNU General Public License for more details.
 #
 
+bootblock-y += pmutil.c
+
 romstage-y += BiosCallOuts.c
 romstage-y += OemCustomize.c
 romstage-y += gpio_ftns.c
+romstage-y += pmutil.c
 
 ramstage-y += BiosCallOuts.c
 ramstage-y += OemCustomize.c
 ramstage-y += gpio_ftns.c
+ramstage-y += pmutil.c
 
 # Order of names in SPD_SOURCES is important!
 SPD_SOURCES  = HYNIX-2G-1333
