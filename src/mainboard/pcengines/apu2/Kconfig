@@ -32,6 +32,15 @@ config BOARD_SPECIFIC_OPTIONS
 	select GENERIC_SPD_BIN
 	select MAINBOARD_HAS_LPC_TPM
 	select SEABIOS_ADD_SERCON_PORT_FILE if PAYLOAD_SEABIOS
+	select PCIEXP_COMMON_CLOCK
+	select PCIEXP_ASPM
+	select PCIEXP_CLK_PM
+	select PCIEXP_L1_SUB_STATE
+	select RTC
+	select MAINBOARD_HAS_TPM2
+	select VBOOT
+	select VBOOT_STARTS_IN_ROMSTAGE
+	select AMDFW_OUTSIDE_CBFS if VBOOT
 
 config MAINBOARD_DIR
 	string
@@ -112,5 +121,40 @@ endchoice
 config DIMM_SPD_SIZE
 	int
 	default 128
+
+config FMDFILE
+	string
+	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/vboot-rw-ab.fmd" if VBOOT
+	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/board.fmd"
+
+config CBFS_SIZE
+	hex
+	default 0x00299F80 if VBOOT
+	default 0x0075b800
+
+config VBOOT
+	select VBOOT_VBNV_CMOS
+	select VBOOT_NO_BOARD_SUPPORT
+	select GBB_FLAG_DISABLE_LID_SHUTDOWN
+	select GBB_FLAG_DISABLE_PD_SOFTWARE_SYNC
+	select GBB_FLAG_DISABLE_EC_SOFTWARE_SYNC
+	select GBB_FLAG_DISABLE_FWMP
+
+config VBOOT_VBNV_OFFSET
+	hex
+	default 0x2D8
+
+config AGESA_CBFS_NAME
+	string
+	default "agesa.bin" if VBOOT
+	help
+	  Change the default CBFS AGESA filename. Build system has problems
+	  with excluding AGESA binary from FMAP partitions when cbfs file name
+	  has upper case letters in name.
+
+config RO_REGION_ONLY
+	string
+	default "apu/amdfw agesa.bin spd.bin"
+	depends on VBOOT
 
 endif # BOARD_PCENGINES_APU2
