@@ -31,11 +31,21 @@ static struct tcpa_table *tcpa_cbmem_init(void)
 		return tclt;
 
 	if (cbmem_possibly_online()) {
-		tclt = cbmem_find(CBMEM_ID_TCPA_LOG);
+		if (IS_ENABLED(CONFIG_TPM1))
+			tclt = cbmem_find(CBMEM_ID_TCPA_LOG);
+		else if (IS_ENABLED(CONFIG_TPM2))
+			tclt = cbmem_find(CBMEM_ID_TPM2_TCG_LOG);
+		
 		if (!tclt) {
 			size_t tcpa_log_len = sizeof(struct tcpa_table) +
-			MAX_TCPA_LOG_ENTRIES * sizeof(struct tcpa_entry);
-			tclt = cbmem_add(CBMEM_ID_TCPA_LOG, tcpa_log_len);
+					      MAX_TCPA_LOG_ENTRIES *
+					      sizeof(struct tcpa_entry);
+			if (IS_ENABLED(CONFIG_TPM1))
+				tclt = cbmem_add(CBMEM_ID_TCPA_LOG,
+						 tcpa_log_len);
+			else if (IS_ENABLED(CONFIG_TPM2))
+				tclt = cbmem_add(CBMEM_ID_TPM2_TCG_LOG,
+						 tcpa_log_len);
 			if (tclt) {
 				memset(tclt, 0, tcpa_log_len);
 				tclt->max_entries = MAX_TCPA_LOG_ENTRIES;
