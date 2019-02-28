@@ -147,8 +147,8 @@ uint32_t vboot_measure_cbfs_hook(struct cbfsf *fh, const char *name)
 	}
 
 	strncpy(prefix_name, CBFS_PREFIX, TCPA_PCR_HASH_NAME - 1);
-	strncpy(prefix_name + sizeof(CBFS_PREFIX),
-			name, TCPA_PCR_HASH_NAME - sizeof(CBFS_PREFIX) - 1);
+	strncpy(prefix_name + sizeof(CBFS_PREFIX) - 1, name,
+		TCPA_PCR_HASH_NAME - sizeof(CBFS_PREFIX) - 2);
 
 	return tpm_measure_region(&rdev, pcr_index, prefix_name);
 }
