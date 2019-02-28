@@ -144,17 +144,9 @@ config VBOOT_VBNV_OFFSET
 	hex
 	default 0x2D8
 
-config AGESA_CBFS_NAME
-	string
-	default "agesa.bin" if VBOOT
-	help
-	  Change the default CBFS AGESA filename. Build system has problems
-	  with excluding AGESA binary from FMAP partitions when cbfs file name
-	  has upper case letters in name.
-
 config RO_REGION_ONLY
 	string
-	default "apu/amdfw agesa.bin spd.bin"
+	default "spd.bin" if VBOOT
 	depends on VBOOT
 
 endif # BOARD_PCENGINES_APU2
