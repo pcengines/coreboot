@@ -15,22 +15,27 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <device/pci_def.h>
 #include <arch/io.h>
-#include <device/pnp.h>
 #include <arch/cpu.h>
+#include <cbfs.h>
+#include <cpu/amd/car.h>
+#include <cpu/x86/bist.h>
 #include <cpu/x86/lapic.h>
 #include <console/console.h>
 #include <commonlib/loglevel.h>
-#include <timestamp.h>
-#include <cpu/amd/car.h>
+#include <commonlib/region.h>
+#include <device/pci_def.h>
+#include <device/pnp.h>
+#include <fmap.h>
 #include <northbridge/amd/agesa/state_machine.h>
 #include <northbridge/amd/pi/agesawrapper.h>
 #include <northbridge/amd/pi/agesawrapper_call.h>
-#include <cpu/x86/bist.h>
+#include <security/vboot/vboot_crtm.h>
+#include <security/vboot/misc.h>
 #include <southbridge/amd/pi/hudson/hudson.h>
 #include <superio/nuvoton/common/nuvoton.h>
 #include <superio/nuvoton/nct5104d/nct5104d.h>
+#include <timestamp.h>
 #include <Fch/Fch.h>
 
 #include "gpio_ftns.h"
@@ -40,6 +45,42 @@
 #define SERIAL2_DEV PNP_DEV(SIO_PORT, NCT5104D_SP2)
 
 static void early_lpc_init(void);
+
+static void measure_amd_blobs(struct sysinfo *cb)
+{
+	struct region_device rdev;
+	uint32_t cbfs_type = CBFS_TYPE_RAW;
+	struct cbfsf fh;
+
+	if (tpm_setup(cb->s3resume) != TPM_SUCCESS)
+		return;
+
+	printk(BIOS_DEBUG, "Measuring AMD blobs\n");
+
+	if(fmap_locate_area_as_rdev("PSPDIR", &rdev)) {
+		printk(BIOS_ERR, "Error: Couldn't find PSPDIR region.");
+		return;
+	}
+	tpm_measure_region(&rdev, TPM_RUNTIME_DATA_PCR,"PSPDIR");
+
+	if (cbfs_locate_file_in_region(&fh, "COREBOOT",
+				       (const char *)CONFIG_AGESA_CBFS_NAME,
+				       &cbfs_type) < 0) {
+		printk(BIOS_ERR, "Error: Couldn't find AGESA.");
+		return;
+	}
+	cbfsf_file_type(&fh, &cbfs_type);
+	cbfs_file_data(&rdev, &fh);
+	tpm_measure_region(&rdev, TPM_CRTM_PCR, "AGESA");
+
+	/* Measure SPD */
+	cbfs_type = CBFS_TYPE_SPD;
+	cbfs_boot_locate(&fh, "spd.bin", &cbfs_type);
+	cbfsf_file_type(&fh, &cbfs_type);
+	cbfs_file_data(&rdev, &fh);
+	tpm_measure_region(&rdev, TPM_CRTM_PCR, "spd.bin");
+
+}
 
 void cache_as_ram_main(unsigned long bist, unsigned long cpu_init_detectedx)
 {
@@ -130,6 +171,11 @@ void agesa_postcar(struct sysinfo *cb)
 	//PspMboxBiosCmdDramInfo();
 	post_code(0x41);
 	AGESAWRAPPER(amdinitenv);
+
+	if (IS_ENABLED(CONFIG_VBOOT_MEASURED_BOOT)) {
+		/* Measure AGESA and PSPDIR */
+		measure_amd_blobs(cb);
+	}
 
 	outb(0xEA, 0xCD6);
 	outb(0x1, 0xcd7);
