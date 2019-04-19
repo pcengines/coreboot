@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#include <AGESA.h>
-#include <northbridge/amd/pi/agesawrapper.h>
 #include <northbridge/amd/agesa/state_machine.h>
 #include "bios_knobs.h"
 

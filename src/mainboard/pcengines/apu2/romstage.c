@@ -13,31 +13,15 @@
  * GNU General Public License for more details.
  */
 
-#include <stdint.h>
 #include <string.h>
-#include <device/pci_def.h>
-#include <arch/io.h>
 #include <device/pci_ops.h>
-#include <device/pnp.h>
-#include <arch/cpu.h>
-#include <cpu/x86/lapic.h>
 #include <console/console.h>
-#include <timestamp.h>
-#include <cpu/amd/car.h>
-#include <device/pnp.h>
-#include <device/pnp_def.h>
 #include <northbridge/amd/agesa/state_machine.h>
-#include <northbridge/amd/pi/agesawrapper.h>
-#include <northbridge/amd/pi/agesawrapper_call.h>
-#include <cpu/x86/bist.h>
 #include <southbridge/amd/pi/hudson/hudson.h>
-#include <superio/nuvoton/common/nuvoton.h>
-#include <superio/nuvoton/nct5104d/nct5104d.h>
 #include <Fch/Fch.h>
 #include <superio/nuvoton/common/nuvoton.h>
 #include <superio/nuvoton/nct5104d/nct5104d.h>
 #include "gpio_ftns.h"
-#include <build.h>
 #include "bios_knobs.h"
 
 #define SIO_PORT 0x2e
