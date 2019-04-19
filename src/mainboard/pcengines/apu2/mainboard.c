@@ -17,6 +17,7 @@
 #include <device/pci_ops.h>
 #include <console/console.h>
 #include <device/device.h>
+#include <northbridge/amd/agesa/state_machine.h>
 #include <southbridge/amd/pi/hudson/hudson.h>
 #include <southbridge/amd/pi/hudson/pci_devs.h>
 #include <northbridge/amd/pi/00730F01/pci_devs.h>
@@ -550,3 +551,11 @@ struct chip_operations mainboard_ops = {
 	.enable_dev = mainboard_enable,
 	.final = mainboard_final,
 };
+
+void board_BeforeInitLate(struct sysinfo *cb, AMD_LATE_PARAMS *Late)
+{
+	/* Code for creating CDIT requires hop count table. If it is not
+	 * present AGESA_ERROR is returned, which confuses users. CDIT is not
+	 * written to the ACPI tables anyway. */
+	Late->PlatformConfig.UserOptionCdit = 0;
+}
