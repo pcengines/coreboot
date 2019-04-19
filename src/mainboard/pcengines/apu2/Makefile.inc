@@ -19,7 +19,12 @@ romstage-y += BiosCallOuts.c
 romstage-y += OemCustomize.c
 romstage-y += gpio_ftns.c
 romstage-y += s1_button.c
+romstage-y += state_machine.c
 
+postcar-y += bios_knobs.c
+postcar-y += postcar.c
+
+ramstage-y += state_machine.c
 ramstage-y += bios_knobs.c
 ramstage-y += BiosCallOuts.c
 ramstage-y += OemCustomize.c

@@ -49,9 +49,14 @@ static void print_sign_of_life(void);
 extern char coreboot_dmi_date[];
 extern char coreboot_version[];
 
-void cache_as_ram_main(unsigned long bist, unsigned long cpu_init_detectedx)
+void board_BeforeAgesa(struct sysinfo *cb)
 {
 	u32 val;
+	u32 data, *memptr;
+	pci_devfn_t dev;
+	volatile u8 *CF9_shadow;
+	CF9_shadow = (u8 *)(ACPI_MMIO_BASE + PMIO_BASE + FCH_PMIOA_REGC5);
+	*CF9_shadow = 0x0;
 
 	/*
 	 *  In Hudson RRG, PMIOxD2[5:4] is "Drive strength control for
@@ -66,112 +71,96 @@ void cache_as_ram_main(unsigned long bist, unsigned long cpu_init_detectedx)
 
 	hudson_lpc_port80();
 
-	if (!cpu_init_detectedx && boot_cpu()) {
-		u32 data, *memptr;
-		pci_devfn_t dev;
-		volatile u8 *CF9_shadow;
-		CF9_shadow = (u8 *)(ACPI_MMIO_BASE + PMIO_BASE + FCH_PMIOA_REGC5);
-		*CF9_shadow = 0x0;
+	post_code(0x30);
+	early_lpc_init();
 
-		timestamp_init(timestamp_get());
-		timestamp_add_now(TS_START_ROMSTAGE);
+	hudson_clk_output_48Mhz();
+	post_code(0x31);
 
-		post_code(0x30);
-		early_lpc_init();
+	dev = PCI_DEV(0, 0x14, 3);
+	data = pci_read_config32(dev, LPC_IO_OR_MEM_DECODE_ENABLE);
+	/* enable 0x2e/0x4e IO decoding before configuring SuperIO */
+	pci_write_config32(dev, LPC_IO_OR_MEM_DECODE_ENABLE, data | 3);
 
-		hudson_clk_output_48Mhz();
-		post_code(0x31);
+	if ((check_com2() || (CONFIG_UART_FOR_CONSOLE == 1)) &&
+		!IS_ENABLED(CONFIG_BOARD_PCENGINES_APU5))
+		nuvoton_enable_serial(SERIAL2_DEV, 0x2f8);
 
-		dev = PCI_DEV(0, 0x14, 3);
-		data = pci_read_config32(dev, LPC_IO_OR_MEM_DECODE_ENABLE);
-		/* enable 0x2e/0x4e IO decoding before configuring SuperIO */
-		pci_write_config32(dev, LPC_IO_OR_MEM_DECODE_ENABLE, data | 3);
+	console_init();
 
-		if ((check_com2() || (CONFIG_UART_FOR_CONSOLE == 1)) &&
-		    !IS_ENABLED(CONFIG_BOARD_PCENGINES_APU5))
-			nuvoton_enable_serial(SERIAL2_DEV, 0x2f8);
+	/* Check if cold boot was requested */
+	val = pci_read_config32(PCI_DEV(0, 0x18, 0), 0x6C);
+	if (val & (1 << 4)) {
+		volatile u32 *ptr;
+		printk(BIOS_ALERT, "Forcing cold boot path\n");
+		val &= ~(0x630);	// ColdRstDet[4], BiosRstDet[10:9, 5]
+		pci_write_config32(PCI_DEV(0, 0x18, 0), 0x6C, val);
 
-		console_init();
+		ptr = (u32*)FCH_PMIOxC0_S5ResetStatus;
+		*ptr = 0x3fff003f;	// Write-1-to-clear
 
-		/* Check if cold boot was requested */
-		val = pci_read_config32(PCI_DEV(0, 0x18, 0), 0x6C);
-		if (val & (1 << 4)) {
-			volatile u32 *ptr;
-			printk(BIOS_ALERT, "Forcing cold boot path\n");
-			val &= ~(0x630);	// ColdRstDet[4], BiosRstDet[10:9, 5]
-			pci_write_config32(PCI_DEV(0, 0x18, 0), 0x6C, val);
+		*CF9_shadow = 0xe;	// FullRst, SysRst, RstCmd
+		printk(BIOS_ALERT, "Did not reset (yet)\n");
+	}
 
-			ptr = (u32*)FCH_PMIOxC0_S5ResetStatus;
-			*ptr = 0x3fff003f;	// Write-1-to-clear
+	printk(BIOS_INFO, "14-25-48Mhz Clock settings\n");
 
-			*CF9_shadow = 0xe;	// FullRst, SysRst, RstCmd
-			printk(BIOS_ALERT, "Did not reset (yet)\n");
-		}
+	memptr = (u32 *)(ACPI_MMIO_BASE + MISC_BASE + FCH_MISC_REG28 );
+	data = *memptr;
+	printk(BIOS_INFO, "FCH_MISC_REG28 is 0x%08x \n", data);
 
-		printk(BIOS_INFO, "14-25-48Mhz Clock settings\n");
+	memptr = (u32 *)(ACPI_MMIO_BASE + MISC_BASE + FCH_MISC_REG40 );
+	data = *memptr;
+	printk(BIOS_INFO, "FCH_MISC_REG40 is 0x%08x \n", data);
 
-		memptr = (u32 *)(ACPI_MMIO_BASE + MISC_BASE + FCH_MISC_REG28 );
-		data = *memptr;
-		printk(BIOS_INFO, "FCH_MISC_REG28 is 0x%08x \n", data);
+	data = *(u32*)FCH_PMIOxC0_S5ResetStatus;
+	// do not print SOL if reset will take place in FchInit
+	if (check_console() &&
+		!(data & FCH_PMIOxC0_S5ResetStatus_All_Status)) {
+		print_sign_of_life();
+	}
+	//
+	// Configure clock request
+	//
+	data = *((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG00));
 
-		memptr = (u32 *)(ACPI_MMIO_BASE + MISC_BASE + FCH_MISC_REG40 );
-		data = *memptr;
-		printk(BIOS_INFO, "FCH_MISC_REG40 is 0x%08x \n", data);
-
-		data = *(u32*)FCH_PMIOxC0_S5ResetStatus;
-		// do not print SOL if reset will take place in FchInit
-		if (check_console() &&
-		    !(data & FCH_PMIOxC0_S5ResetStatus_All_Status)) {
-			print_sign_of_life();
-		}
-		//
-		// Configure clock request
-		//
-		data = *((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG00));
-
-		data &= 0xFFFF0000;
-		data |= (0 + 1) << (0 * 4);	// CLKREQ 0 to CLK0
-		data |= (1 + 1) << (1 * 4);	// CLKREQ 1 to CLK1
+	data &= 0xFFFF0000;
+	data |= (0 + 1) << (0 * 4);	// CLKREQ 0 to CLK0
+	data |= (1 + 1) << (1 * 4);	// CLKREQ 1 to CLK1
 #if IS_ENABLED(CONFIG_BOARD_PCENGINES_APU2) || IS_ENABLED(CONFIG_BOARD_PCENGINES_APU3) || IS_ENABLED(CONFIG_BOARD_PCENGINES_APU4)
-		data |= (2 + 1) << (2 * 4);	// CLKREQ 2 to CLK2 disabled on APU5
+	data |= (2 + 1) << (2 * 4);	// CLKREQ 2 to CLK2 disabled on APU5
 #endif
-		// make CLK3 to ignore CLKREQ# input
-		// force it to be always on
-		data |= ( 0xf ) << (3 * 4);	// CLKREQ 3 to CLK3
+	// make CLK3 to ignore CLKREQ# input
+	// force it to be always on
+	data |= ( 0xf ) << (3 * 4);	// CLKREQ 3 to CLK3
 
-		*((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG00)) = data;
+	*((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG00)) = data;
 
-		data = *((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG04));
+	data = *((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG04));
 
-		data &= 0xFFFFFF0F;
+	data &= 0xFFFFFF0F;
 #if IS_ENABLED(CONFIG_FORCE_MPCIE2_CLK)
+	// make GFXCLK to ignore CLKREQ# input
+	// force it to be always on
+	data |= 0xF << (1 * 4); // CLKREQ GFX to GFXCLK
+#else
+	if (check_mpcie2_clk()) {
 		// make GFXCLK to ignore CLKREQ# input
 		// force it to be always on
 		data |= 0xF << (1 * 4); // CLKREQ GFX to GFXCLK
-#else
-		if (check_mpcie2_clk()) {
-			// make GFXCLK to ignore CLKREQ# input
-			// force it to be always on
-			data |= 0xF << (1 * 4); // CLKREQ GFX to GFXCLK
-			printk(BIOS_DEBUG, "mPCIe clock enabled\n");
-		}
-		else {
-			data |= 0xA << (1 * 4);	// CLKREQ GFX to GFXCLK
-			printk(BIOS_DEBUG, "mPCIe clock disabled\n");
-		}
+		printk(BIOS_DEBUG, "mPCIe clock enabled\n");
+	}
+	else {
+		data |= 0xA << (1 * 4);	// CLKREQ GFX to GFXCLK
+		printk(BIOS_DEBUG, "mPCIe clock disabled\n");
+	}
 #endif
 
-		*((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG04)) = data;
-	}
-
-	/* Halt if there was a built in self test failure */
-	post_code(0x34);
-	report_bist_failure(bist);
+	*((u32 *)(ACPI_MMIO_BASE + MISC_BASE+FCH_MISC_REG04)) = data;
 
 	/* Load MPB */
 	val = cpuid_eax(1);
 	printk(BIOS_DEBUG, "BSP Family_Model: %08x\n", val);
-	printk(BIOS_DEBUG, "cpu_init_detectedx = %08lx\n", cpu_init_detectedx);
 
 	/* Disable SVI2 controller to wait for command completion */
 	val = pci_read_config32(PCI_DEV(0, 0x18, 5), 0x12C);
@@ -182,35 +171,6 @@ void cache_as_ram_main(unsigned long bist, unsigned long cpu_init_detectedx)
 		val |= (1 << 30);
 		pci_write_config32(PCI_DEV(0, 0x18, 5), 0x12C, val);
 	}
-
-	post_code(0x37);
-	AGESAWRAPPER(amdinitreset);
-
-	post_code(0x38);
-	printk(BIOS_DEBUG, "Got past avalon_early_setup\n");
-
-	post_code(0x39);
-	AGESAWRAPPER(amdinitearly);
-
-	timestamp_add_now(TS_BEFORE_INITRAM);
-
-	post_code(0x40);
-	AGESAWRAPPER(amdinitpost);
-
-	/* FIXME: Detect if TSC frequency changed during raminit? */
-	timestamp_rescale_table(1, 4);
-
-	timestamp_add_now(TS_AFTER_INITRAM);
-}
-
-void agesa_postcar(struct sysinfo *cb)
-{
-	//PspMboxBiosCmdDramInfo();
-	post_code(0x41);
-	AGESAWRAPPER(amdinitenv);
-
-	outb(0xEA, 0xCD6);
-	outb(0x1, 0xcd7);
 }
 
 static void early_lpc_init(void)
