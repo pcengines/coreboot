@@ -84,3 +84,8 @@ void board_BeforeInitEarly(struct sysinfo *cb, AMD_EARLY_PARAMS *InitEarly)
 		InitEarly->PlatformConfig.CpbMode = CpbModeAuto;
 	}
 }
+
+void board_BeforeInitPost(struct sysinfo *cb, AMD_POST_PARAMS *InitPost)
+{
+	InitPost->MemConfig.EnableBankIntlv = 0;
+}
