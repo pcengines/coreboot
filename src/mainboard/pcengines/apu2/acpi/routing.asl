@@ -27,6 +27,7 @@ DefinitionBlock ("DSDT.AML", "DSDT", 0x01, OEM_ID, ACPI_TABLE_CREATOR, 0x0001000
 Name(PR0, Package(){
 	/* NB devices */
 	/* Bus 0, Dev 0 - F16 Host Controller */
+	Package(){0x0000FFFF, 0, INTA, 0 },
 
 	/* Bus 0, Dev 1 - PCI Bridge for Internal Graphics(IGP) */
 	/* Bus 0, Dev 1, Func 1 - HDMI Audio Controller */
@@ -70,6 +71,7 @@ Name(PR0, Package(){
 Name(APR0, Package(){
 	/* NB devices in APIC mode */
 	/* Bus 0, Dev 0 - F15 Host Controller */
+	Package(){0x0000FFFF, 0, 0, 28 },
 
 	/* Bus 0, Dev 1 - PCI Bridge for Internal Graphics(IGP) */
 	Package(){0x0001FFFF, 0, 0, 44 },
@@ -80,7 +82,6 @@ Name(APR0, Package(){
 	Package(){0x0002FFFF, 1, 0, 25 },
 	Package(){0x0002FFFF, 2, 0, 26 },
 	Package(){0x0002FFFF, 3, 0, 27 },
-
 
 	/* SB devices in APIC mode */
 	/* Bus 0, Dev 20 - F0:SMBus/ACPI,F2:HDAudio;F3:LPC;F7:SD */
