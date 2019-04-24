@@ -71,7 +71,7 @@ Name(PR0, Package(){
 Name(APR0, Package(){
 	/* NB devices in APIC mode */
 	/* Bus 0, Dev 0 - F15 Host Controller */
-	Package(){0x0000FFFF, 0, 0, 28 },
+	Package(){0x0000FFFF, 0, 0, 24 },
 
 	/* Bus 0, Dev 1 - PCI Bridge for Internal Graphics(IGP) */
 	Package(){0x0001FFFF, 0, 0, 44 },
