@@ -21,8 +21,8 @@ checkout:
 		git checkout master && \
 		git pull; \
 		test -n "$(TAG-y)" && \
-			git branch -f $(NAME-y) $(TAG-y) && \
-			git checkout $(NAME-y) || true
+			git branch -D coreboot 2>/dev/null && \
+			git checkout -b coreboot $(TAG-y) || true
 
 grub2/build/config.h: $(CONFIG_DEP) | checkout
 	echo "    CONFIG     GRUB2 $(NAME-y)"
