@@ -17,18 +17,13 @@ checkout:
 	echo "    GIT        GRUB2 $(NAME-y)"
 	test -d grub2 || \
 		git clone $(project_git_repo) $(project_dir)
-	cd grub2 && \
-		git checkout master && \
-		git pull; \
-		test -n "$(TAG-y)" && \
-			git branch -D coreboot 2>/dev/null && \
-			git checkout -b coreboot $(TAG-y) || true
+	#cd grub2; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
 grub2/build/config.h: $(CONFIG_DEP) | checkout
 	echo "    CONFIG     GRUB2 $(NAME-y)"
 	rm -rf grub2/build
 	mkdir grub2/build
-	cd grub2 && ./bootstrap ; ./autogen.sh
+	cd grub2 && ./bootstrap && ./autogen.sh
 	cd grub2/build && ../configure CC="$(HOSTCC)" LD="$(LD)" \
 	FREETYPE="pkg-config freetype2" BUILD_FREETYPE="pkg-config freetype2" \
 	TARGET_CC="$(CC)" TARGET_OBJCOPY="$(OBJCOPY)" TARGET_STRIP="$(STRIP)" \
