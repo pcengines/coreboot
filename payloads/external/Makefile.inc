@@ -280,7 +280,6 @@ payloads/external/sortbootorder/sortbootorder/sortbootorder.elf sortbootorder:
 		SORTBOOTORDER_MASTER=$(CONFIG_SORTBOOTORDER_MASTER) \
 		SORTBOOTORDER_STABLE=$(CONFIG_SORTBOOTORDER_STABLE) \
 
-
 cbfs-files-$(CONFIG_SORTBOOTORDER_SECONDARY_PAYLOAD) += img/setup
 img/setup-file := payloads/external/sortbootorder/sortbootorder/sortbootorder.elf
 img/setup-type := payload
