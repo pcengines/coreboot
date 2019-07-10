@@ -1,18 +1,10 @@
 TAG-$(SORTBOOTORDER_MASTER)=origin/master
-<<<<<<< HEAD
 TAG-$(SORTBOOTORDER_STABLE)=v4.6.17
 TAG-$(SORTBOOTORDER_REVISION)=$(SORTBOOTORDER_REVISION_ID)
-
 project_git_repo=https://github.com/pcengines/sortbootorder.git
 project_name=sortbootorder
 project_dir=$(CURDIR)/sortbootorder
-=======
-TAG-$(SORTBOOTORDER_STABLE)=v4.6.14
-TAG-$(SORTBOOTORDER_REVISION)=$(SORTBOOTORDER_REVISION_ID)
 
-project_git_repo=https://github.com/pcengines/sortbootorder.git
-project_dir=sortbootorder
->>>>>>> payloads/external/sortbootorder/Makefile: allow specifying revision
 
 unexport KCONFIG_AUTOHEADER
 unexport KCONFIG_AUTOCONFIG
