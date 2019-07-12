@@ -17,7 +17,7 @@ checkout:
 	echo "    GIT        GRUB2 $(NAME-y)"
 	test -d grub2 || \
 		git clone $(project_git_repo) $(project_dir)
-	#cd grub2; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
+	cd grub2; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
 grub2/build/config.h: $(CONFIG_DEP) | checkout
 	echo "    CONFIG     GRUB2 $(NAME-y)"
