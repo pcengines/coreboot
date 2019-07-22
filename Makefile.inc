@@ -1184,10 +1184,12 @@ ifeq ($(CONFIG_VPD),y)
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
 endif
 	$(CBFSTOOL) $@.tmp remove -r COREBOOT -n fallback/payload
+	$(CBFSTOOL) $@.tmp extract -r COREBOOT -n img/setup -f setup.elf -m x86
 	$(CBFSTOOL) $@.tmp remove -r COREBOOT -n img/setup
 	$(CBFSTOOL) $@.tmp remove -r COREBOOT -n linux/payload
 	$(CBFSTOOL) $@.tmp add-payload -f bzImage -n fallback/payload -c none \
 	-r COREBOOT -C "console=ttyS1,115200 iomem=relaxed" -I "initrd.cpio.xz"
+	$(CBFSTOOL) $@.tmp add-payload -r COREBOOT -n img/setup -f setup.elf -c lzma
 
 ifeq ($(CONFIG_VPD),y)
 	@printf "    VPDTOOL    Formatting VPD partitions\n"
