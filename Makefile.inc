@@ -93,7 +93,7 @@ subdirs-y += $(wildcard src/soc/*/*) $(wildcard src/northbridge/*/*)
 subdirs-y += src/superio
 subdirs-y += $(wildcard src/drivers/*) $(wildcard src/drivers/*/*)
 subdirs-y += src/cpu src/vendorcode
-subdirs-y += util/cbfstool util/sconfig util/nvramtool
+subdirs-y += util/cbfstool util/sconfig util/nvramtool util/vpdtool
 subdirs-y += util/futility util/marvell util/bincfg
 subdirs-y += $(wildcard src/arch/*)
 subdirs-y += src/mainboard/$(MAINBOARDDIR)
@@ -478,7 +478,7 @@ ADAFLAGS_common += -gnata
 endif
 
 additional-dirs := $(objutil)/cbfstool $(objutil)/romcc $(objutil)/ifdtool \
-		   $(objutil)/options $(objutil)/amdfwtool \
+		   $(objutil)/options $(objutil)/amdfwtool $(objutil)/vpdtool \
 		   $(objutil)/cbootimage $(objutil)/bimgtool
 
 export $(COREBOOT_EXPORTS)
@@ -646,7 +646,7 @@ install-git-commit-clangfmt:
 include util/crossgcc/Makefile.inc
 
 .PHONY: tools
-tools: $(objutil)/kconfig/conf $(CBFSTOOL) $(objutil)/cbfstool/cbfs-compression-tool $(FMAPTOOL) $(RMODTOOL) $(IFWITOOL) $(objutil)/nvramtool/nvramtool $(ROMCC_BIN) $(objutil)/sconfig/sconfig $(IFDTOOL) $(CBOOTIMAGE) $(AMDFWTOOL) $(AMDCOMPRESS) $(FUTILITY) $(BINCFG) $(IFITTOOL)
+tools: $(objutil)/kconfig/conf $(CBFSTOOL) $(objutil)/cbfstool/cbfs-compression-tool $(FMAPTOOL) $(RMODTOOL) $(IFWITOOL) $(objutil)/nvramtool/nvramtool $(ROMCC_BIN) $(objutil)/sconfig/sconfig $(IFDTOOL) $(CBOOTIMAGE) $(AMDFWTOOL) $(AMDCOMPRESS) $(FUTILITY) $(BINCFG) $(IFITTOOL) $(VPDTOOL)
 
 ###########################################################################
 # Common recipes for all stages
@@ -1074,7 +1074,7 @@ else
 RAMSTAGE=
 endif
 
-$(obj)/coreboot.rom: $(obj)/coreboot.pre $(RAMSTAGE) $(CBFSTOOL) $$(INTERMEDIATE)
+$(obj)/coreboot.rom: $(obj)/coreboot.pre $(RAMSTAGE) $(CBFSTOOL) $(VPDTOOL) $$(INTERMEDIATE)
 
 	@printf "    CBFS       $(subst $(obj)/,,$(@))\n"
 # The full ROM may be larger than the CBFS part, so create an empty
@@ -1105,6 +1105,22 @@ ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
 	-r COREBOOT
 endif
 	$(IFITTOOL) -f $@.tmp -D -r COREBOOT
+
+ifeq ($(CONFIG_VPD),y)
+	@printf "    VPDTOOL    Formatting VPD partitions\n"
+	$(VPDTOOL) -f $@.tmp -O -i RO_VPD
+	$(VPDTOOL) -f $@.tmp -O -i RW_VPD
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s scon=enabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s usben=enabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s boosten=enabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s sd3mode=disabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s watchdog=0
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s scon=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s usben=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s boosten=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s sd3mode=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
+endif
 
 # Second FIT in TOP_SWAP bootblock
 ifeq ($(CONFIG_INTEL_ADD_TOP_SWAP_BOOTBLOCK),y)
