@@ -44,11 +44,12 @@
 #include "bios_knobs.h"
 #include "s1_button.h"
 
-#define SPD_SIZE  128
+#define SIO_PORT			0x2e
+
+#define SPD_SIZE  			128
 #define PM_RTC_CONTROL		0x56
 #define PM_RTC_SHADOW		0x5B
 #define PM_S_STATE_CONTROL	0xBA
-#define PM_PCI_CONFIG		0xEA
 
 #define SEC_REG_SERIAL_ADDR	0x1000
 #define MAX_SERIAL_LEN		10
