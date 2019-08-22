@@ -13,7 +13,7 @@
 #include <timestamp.h>
 
 #include "vpd.h"
-#include "vpd_decode.h"
+#include "lib_vpd.h"
 #include "vpd_tables.h"
 
 /* Currently we only support Google VPD 2.0, which has a fixed offset. */
