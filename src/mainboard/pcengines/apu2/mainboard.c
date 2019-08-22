@@ -365,7 +365,7 @@ static void mainboard_enable(struct device *dev)
 	pm_write8(PM_RTC_SHADOW, pm_read8(PM_RTC_SHADOW) | (1 << 0));
 
 	/* Enable GENINTx as GPIO */
-	pm_write8(PM_PCI_CONFIG, 1);
+	//pm_write8(PM_PCI_CONFIG, 1);
 
 	/* Initialize the PIRQ data structures for consumption */
 	pirq_setup();

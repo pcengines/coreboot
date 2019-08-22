@@ -206,27 +206,27 @@ static void cbmem_add_cros_vpd(int is_recovery)
 	}
 }
 
-static int vpd_gets_callback(const uint8_t *key, uint32_t key_len,
-			     const uint8_t *value, uint32_t value_len,
+static int vpd_gets_callback(const uint8_t *key, int32_t key_len,
+			     const uint8_t *value, int32_t value_len,
 			     void *arg)
 {
 	struct vpd_gets_arg *result = (struct vpd_gets_arg *)arg;
 	if (key_len != result->key_len ||
 	    memcmp(key, result->key, key_len) != 0)
 		/* Returns VPD_DECODE_OK to continue parsing. */
-		return VPD_DECODE_OK;
+		return VPD_OK;
 
 	result->matched = 1;
 	result->value = value;
 	result->value_len = value_len;
 	/* Returns VPD_DECODE_FAIL to stop parsing. */
-	return VPD_DECODE_FAIL;
+	return VPD_FAIL;
 }
 
 const void *vpd_find(const char *key, int *size, enum vpd_region region)
 {
 	struct vpd_gets_arg arg = {0};
-	uint32_t consumed = 0;
+	int consumed = 0;
 
 #if !ENV_ROMSTAGE
 	const struct vpd_cbmem *vpd;
@@ -241,17 +241,17 @@ const void *vpd_find(const char *key, int *size, enum vpd_region region)
 
 #if !ENV_ROMSTAGE
 	if (region == VPD_ANY || region == VPD_RO) {
-		while (vpd_decode_string(
+		while (decodeVpdString(
 				vpd->ro_size, vpd->blob, &consumed,
-				vpd_gets_callback, &arg) == VPD_DECODE_OK) {
+				vpd_gets_callback, &arg) == VPD_OK) {
 			/* Iterate until found or no more entries. */
 		}
 	}
 	if (!arg.matched && region != VPD_RO) {
-		while (vpd_decode_string(
+		while (decodeVpdString(
 				vpd->rw_size, vpd->blob + vpd->ro_size,
 				&consumed, vpd_gets_callback,
-				&arg) == VPD_DECODE_OK) {
+				&arg) == VPD_OK) {
 			/* Iterate until found or no more entries. */
 		}
 	}
