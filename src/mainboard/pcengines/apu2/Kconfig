@@ -124,12 +124,16 @@ config FORCE_MPCIE2_CLK
 
 config FMDFILE
 	string
-	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/vboot-ro.fmd" if VBOOT
+	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/vboot-ro.fmd"
+
+config AMDFW_OUTSIDE_CBFS
+	bool
+	default y
 
 config CBFS_SIZE
 	hex
 	default 0x0020C000 if VBOOT
-	default 0x00800000
+	default 0x0055F000
 
 config VBOOT
 	select VBOOT_VBNV_CMOS
