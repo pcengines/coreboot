@@ -151,9 +151,9 @@ vpd_err_t encodeVpdString(
  * result.
  */
 vpd_err_t decodeVpdString(
-    const int32_t max_len,
+    const uint32_t max_len,
     const uint8_t *input_buf,
-    int32_t *consumed,
+    uint32_t *consumed,
     VpdDecodeCallback callback,
     void *callback_arg);
 

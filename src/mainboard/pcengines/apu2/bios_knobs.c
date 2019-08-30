@@ -20,66 +20,6 @@
 #include <drivers/vpd/vpd.h>
 #include "bios_knobs.h"
 
-#define BOOTORDER_FILE "bootorder"
-
-
-// static char * findstr(const char *s, const char *pattern)
-// {
-// 	char *result = (char *) s;
-// 	char *lpattern = (char *) pattern;
-
-// 	while (*result && *pattern ) {
-// 		if ( *lpattern == 0)
-// 		// the pattern matches return the pointer
-// 			return result;
-// 		if ( *result == 0)
-// 		// We're at the end of the file content but
-// 		// don't have a pattern match yet
-// 			return NULL;
-// 		if (*result == *lpattern ) {
-// 			// The string matches, simply advance
-// 			result++;
-// 			lpattern++;
-// 		} else {
-// 			// The string doesn't match restart the pattern
-// 			result++;
-// 			lpattern = (char *) pattern;
-// 		}
-// 	}
-
-// 	return NULL;
-// }
-
-// static int check_knob_value(const char *s)
-// {
-// 	const char *boot_file = NULL;
-// 	size_t boot_file_len = 0;
-// 	char * token = NULL;
-
-// 	//
-// 	// This function locates a file in cbfs, maps it to memory and returns
-// 	// a void* pointer
-// 	//
-// 	boot_file = cbfs_boot_map_with_leak(BOOTORDER_FILE, CBFS_TYPE_RAW,
-// 						&boot_file_len);
-// 	if (boot_file == NULL)
-// 		printk(BIOS_INFO, "file [%s] not found in CBFS\n",
-// 			BOOTORDER_FILE);
-// 	if (boot_file_len < 4096)
-// 		printk(BIOS_INFO, "Missing bootorder data.\n");
-// 	if (boot_file == NULL || boot_file_len < 4096)
-// 		return -1;
-
-// 	token = findstr( boot_file, s );
-
-// 	if (token) {
-// 		if (*token == '0') return 0;
-// 		if (*token == '1') return 1;
-// 	}
-
-// 	return -1;
-// }
-
 static int check_knob_value(const char *s, enum vpd_region region)
 {
 	char buffer[10];

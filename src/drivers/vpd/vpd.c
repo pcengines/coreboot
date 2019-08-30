@@ -240,21 +240,18 @@ const void *vpd_find(const char *key, int *size, enum vpd_region region)
 	arg.key_len = strlen(key);
 
 #if !ENV_ROMSTAGE
-	if (region == VPD_ANY || region == VPD_RO) {
-		while (decodeVpdString(
-				vpd->ro_size, vpd->blob, &consumed,
-				vpd_gets_callback, &arg) == VPD_OK) {
-			/* Iterate until found or no more entries. */
+	if (region == VPD_ANY || region == VPD_RO)
+		while (VPD_OK == decodeVpdString(vpd->ro_size, vpd->blob,
+		       &consumed, vpd_gets_callback, &arg)) {
+		/* Iterate until found or no more entries. */
 		}
-	}
-	if (!arg.matched && region != VPD_RO) {
-		while (decodeVpdString(
-				vpd->rw_size, vpd->blob + vpd->ro_size,
-				&consumed, vpd_gets_callback,
-				&arg) == VPD_OK) {
-			/* Iterate until found or no more entries. */
+
+	if (!arg.matched && region != VPD_RO)
+		while (VPD_OK == decodeVpdString(vpd->rw_size,
+		       vpd->blob + vpd->ro_size, &consumed,
+		       vpd_gets_callback, &arg)) {
+		/* Iterate until found or no more entries. */
 		}
-	}
 #else
 	void *ro_vpd_base;
 	void *rw_vpd_base;

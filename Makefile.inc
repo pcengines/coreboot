@@ -561,6 +561,12 @@ $(IFDTOOL):
 	+$(MAKE) -C $(top)/util/ifdtool
 	cp -a $(top)/util/ifdtool/ifdtool $@
 
+VPDTOOL:=$(objutil)/vpdtool/vpdtool
+$(VPDTOOL):
+	@printf "    Compile VPDTOOL\n"
+	+$(MAKE) -C $(top)/util/vpdtool
+	cp -a $(top)/util/vpdtool/vpdtool $@
+
 AMDFWTOOL:=$(objutil)/amdfwtool/amdfwtool
 $(AMDFWTOOL): $(top)/util/amdfwtool/amdfwtool.c
 	@printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
@@ -1100,6 +1106,23 @@ ifneq ($(strip $(CONFIG_SEABIOS_BOOTORDER_FILE)),)
 endif
 endif
 
+#FIXME: CONFIG_VPD=y in apu2_config, but that condition doesn't pass
+#ifeq ($(CONFIG_VPD),y)
+	@printf "    VPDTOOL    Formatting VPD partitions\n"
+	$(VPDTOOL) -f $@.tmp -O -i RO_VPD
+	$(VPDTOOL) -f $@.tmp -O -i RW_VPD
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s scon=enabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s usben=enabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s boosten=disabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s sd3mode=disabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s watchdog=0
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s scon=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s usben=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s boosten=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s sd3mode=disabled	
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
+#endif
+
 ifeq ($(CONFIG_CPU_INTEL_FIRMWARE_INTERFACE_TABLE),y)
 ifeq ($(CONFIG_CPU_MICROCODE_CBFS_EXTERNAL_HEADER),y)
 	@printf "    UPDATE-FIT\n"
@@ -1112,30 +1135,6 @@ ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
 	-r COREBOOT
 endif
 	$(IFITTOOL) -f $@.tmp -D -r COREBOOT
-
-ifeq ($(CONFIG_VPD),y)
-	@printf "    VPDTOOL    Formatting VPD partitions\n"
-	$(VPDTOOL) -f $@.tmp -O -i RO_VPD
-	$(VPDTOOL) -f $@.tmp -O -i RW_VPD
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s scon=enabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s com2en=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s usben=enabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s boosten=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartc=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartd=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s mpcie2_clk=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s sd3mode=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s watchdog=0
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s scon=enabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s com2en=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s usben=enabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s boosten=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartc=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartd=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s mpcie2_clk=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s sd3mode=disabled	
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
-endif
 
 # Second FIT in TOP_SWAP bootblock
 ifeq ($(CONFIG_INTEL_ADD_TOP_SWAP_BOOTBLOCK),y)
