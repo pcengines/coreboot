@@ -1159,7 +1159,7 @@ ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
 	$(TS_OPTIONS) -r COREBOOT
 endif
 	$(IFITTOOL) -f $@.tmp -D $(TS_OPTIONS) -r COREBOOT
-
+endif
 endif
 
 ifeq ($(CONFIG_VPD),y)
@@ -1173,15 +1173,21 @@ ifeq ($(CONFIG_VPD),y)
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s sd3mode=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartc=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartd=disabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s pxen=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s watchdog=0
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s scon=enabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s usben=enabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s com2_en=disabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s boosten=enabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s sd3mode=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartc=disabled
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartd=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartc=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartd=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s pxen=enabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
+ifneq ($(CONFIG_BOARD_PCENGINES_APU2),y)
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s ehcien=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s ehcien=enabled
+endif
 endif
 	$(CBFSTOOL) $@.tmp remove -r COREBOOT -n fallback/payload
 	$(CBFSTOOL) $@.tmp extract -r COREBOOT -n img/setup -f setup.elf -m x86
@@ -1190,12 +1196,6 @@ endif
 	$(CBFSTOOL) $@.tmp add-payload -f bzImage -n fallback/payload -c none \
 	-r COREBOOT -C "console=ttyS1,115200 iomem=relaxed" -I "initrd.cpio.xz"
 	$(CBFSTOOL) $@.tmp add-payload -r COREBOOT -n img/setup -f setup.elf -c lzma
-
-ifeq ($(CONFIG_VPD),y)
-	@printf "    VPDTOOL    Formatting VPD partitions\n"
-	$(VPDTOOL) -f $@.tmp -O -i RO_VPD
-	$(VPDTOOL) -f $@.tmp -O -i RW_VPD
-endif
 
 ifeq ($(CONFIG_AGESA_UCODE_EXPERIMENTAL),y)
 	dd if=$(CONFIG_CPU_UCODE_BINARIES) of=$@.tmp bs=1 seek=6665692 count=3424 conv=notrunc 2> /dev/null
