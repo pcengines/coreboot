@@ -233,7 +233,7 @@ const void *vpd_find(const char *key, int *size, enum vpd_region region)
 	if (region == VPD_ANY || region == VPD_RO) {
 		if (!ro_vpd_base || !ro_vpd_size)
 			return NULL;
-		while (VPD_OK == decodeVpdString(ro_vpd_size, ro_vpd_base,
+		while (VPD_DECODE_OK == vpd_decode_string(ro_vpd_size, ro_vpd_base,
 		       &consumed, vpd_gets_callback, &arg)) {
 		/* Iterate until found or no more entries. */
 		}
@@ -241,7 +241,7 @@ const void *vpd_find(const char *key, int *size, enum vpd_region region)
 	if (!arg.matched && region != VPD_RO) {
 		if (!rw_vpd_base || !rw_vpd_size)
 			return NULL;
-		while (VPD_OK == decodeVpdString(rw_vpd_size,
+		while (VPD_DECODE_OK == vpd_decode_string(rw_vpd_size,
 		       rw_vpd_base, &consumed, vpd_gets_callback, &arg)) {
 		/* Iterate until found or no more entries. */
 		}

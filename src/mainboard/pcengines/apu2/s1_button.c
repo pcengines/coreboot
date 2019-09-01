@@ -22,7 +22,7 @@
 #include <spi-generic.h>
 #include <commonlib/region.h>
 #include <console/console.h>
-#include <drivers/vpd/lib_vpd.h>
+#include <drivers/vpd/vpd_decode.h>
 #include <drivers/vpd/vpd.h>
 #include <drivers/vpd/vpd_tables.h>
 
@@ -56,13 +56,37 @@ static int flash_vpd(size_t offset, size_t fsize, char *buffer)
 		return -1;
 	}
 }
+static int decodeLen(
+		const u32 max_len, const u8 *in, u32 *length, u32 *decoded_len)
+{
+	u8 more;
+	int i = 0;
+
+	if (!length || !decoded_len)
+		return VPD_DECODE_FAIL;
+
+	*length = 0;
+	do {
+		if (i >= max_len)
+			return VPD_DECODE_FAIL;
+
+		more = in[i] & 0x80;
+		*length <<= 7;
+		*length |= in[i] & 0x7f;
+		++i;
+	} while (more);
+
+	*decoded_len = i;
+	return VPD_DECODE_OK;
+}
+
 
 static int find_scon_offset(void *vpd_buffer, struct google_vpd_info *info,
 			    uint32_t *scon_offset)
 {
 	uint32_t offset = 0x600 + sizeof(struct google_vpd_info);
 	uint8_t type;
-	int32_t key_len, value_len, decoded_len;
+	uint32_t key_len, value_len, decoded_len = 0;
 	const uint8_t *key, *value;
 	uint32_t consumed = 0;
 	uint32_t strings_offset = offset;
