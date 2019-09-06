@@ -164,4 +164,7 @@ config AGESA_USE_1_0_0_4_HEADER
 	  revisions. This option removes the changes in headers introduced
 	  with AGESA 1.0.0.A to fit the 1.0.0.4 revision.
 
+config VPD
+	select AMDFW_OUTSIDE_CBFS
+
 endif # BOARD_PCENGINES_APU2
