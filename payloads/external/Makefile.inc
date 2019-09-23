@@ -218,7 +218,18 @@ grub2: $(obj)/config.h
 			CONFIG_GRUB2_REVISION_ID=$(CONFIG_GRUB2_REVISION_ID) \
 			CONFIG_GRUB2_EXTRA_MODULES=$(CONFIG_GRUB2_EXTRA_MODULES)
 
+lzheader:
+	$(MAKE) -C payloads/external/landing-zone \
+			CC="$(HOSTCC)"
+
 payloads/external/GRUB2/grub2/build/default_payload.elf: grub2
+
+ifneq ($(strip $(CONFIG_GRUB2_TRENCHBOOT_DRTM)),)
+payloads/external/landing-zone/lz_header.bin: lzheader 
+cbfs-files-y += lz_header
+lz_header-file := payloads/external/landing-zone/lz_header.bin
+lz_header-type := raw
+endif
 
 # U-Boot
 
