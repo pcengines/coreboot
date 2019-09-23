@@ -28,12 +28,14 @@ endchoice
 config GRUB2_REVISION_ID
 	string "Insert a commit's SHA-1 or a branch name"
 	depends on GRUB2_REVISION
+	default "origin/scratchpad_kh" if GRUB2_TRENCHBOOT_DRTM
 	default "origin/master"
 	help
 	   The commit's SHA-1 or branch name of the revision to use.
 
 config GRUB2_EXTRA_MODULES
 	string "Extra modules to include in GRUB image"
+	default "slaunch" if GRUB2_TRENCHBOOT_DRTM
 	help
 	  Space-separated list of additional modules to include. Few common
 	  ones:
@@ -70,5 +72,29 @@ config GRUB2_RUNTIME_CONFIG_FILE
 	default "grub.cfg"
 	help
 	  The path of the GRUB2 runtime configuration file to be added to CBFS.
+
+config GRUB2_TRENCHBOOT_DRTM
+	bool "Add TrenchBoot DRTM support"
+	depends on PAYLOAD_GRUB2
+	default n
+	help
+	  Enable Trenchboot DRTM extensions in GRUB2 and build LandingZone binary that will be included in CBFS.
+
+config GRUB2_INCLUDE_UROOT
+	bool "Include u-root binaries"
+	depends on GRUB2_TRENCHBOOT_DRTM
+	default no
+	help
+	  Include Linux kernel with u-root initrd.
+
+config GRUB2_LINUX_KERNEL
+	string "Path to Linux kernel"
+	default ""
+	depends on GRUB2_INCLUDE_UROOT
+
+config GRUB2_LINUX_KERNEL
+	string "Path to u-root initrd"
+	default ""
+	depends on GRUB2_INCLUDE_UROOT
 
 endif
