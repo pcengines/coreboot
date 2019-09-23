@@ -37,9 +37,6 @@
 [submodule "3rdparty/ffs"]
 	path = 3rdparty/ffs
 	url = https://github.com/coreboot/ffs.git
-[submodule "payload/external/landing-zone"]
-	path = payload/external/landing-zone
-	url = https://github.com/TrenchBoot/landing-zone
 [submodule "payloads/external/landing-zone"]
 	path = payloads/external/landing-zone
 	url = https://github.com/TrenchBoot/landing-zone
