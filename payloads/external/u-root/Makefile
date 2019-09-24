@@ -18,7 +18,7 @@ project_dir=$(CURDIR)/uroot
 project_git_repo=github.com/u-root/u-root
 
 GOPATH=$(CURDIR)/uroot
-PATH=/usr/local/go:$(PATH)
+PATH:=/usr/local/go:$(PATH)
 
 export PATH
 export GOPATH
@@ -30,7 +30,7 @@ $(project_dir):
 	mkdir $(project_dir)
 	go get $(project_git_repo)
 
-build: $(project_dir):
+build: $(project_dir)
 	cd $(CURDIR)/uroot/src/github.com/u-root/u-root
 	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb cmds/core/init cmds/core/{kexec,elvish,mount,umount}
 	cd $(project_dir)
