@@ -87,14 +87,4 @@ config GRUB2_INCLUDE_UROOT
 	help
 	  Include Linux kernel with u-root initrd.
 
-config GRUB2_LINUX_KERNEL
-	string "Path to Linux kernel"
-	default ""
-	depends on GRUB2_INCLUDE_UROOT
-
-config GRUB2_LINUX_KERNEL
-	string "Path to u-root initrd"
-	default ""
-	depends on GRUB2_INCLUDE_UROOT
-
 endif
