@@ -222,13 +222,34 @@ lzheader:
 	$(MAKE) -C payloads/external/landing-zone \
 			CC="$(HOSTCC)"
 
+linux:
+	$(MAKE) -C payloads/external/linux
+
+uroot:
+	$(MAKE) -C payloads/external/u-root
+
 payloads/external/GRUB2/grub2/build/default_payload.elf: grub2
 
-ifneq ($(strip $(CONFIG_GRUB2_TRENCHBOOT_DRTM)),)
+ifneq ($(CONFIG_GRUB2_TRENCHBOOT_DRTM),)
 payloads/external/landing-zone/lz_header.bin: lzheader 
 cbfs-files-y += lz_header
 lz_header-file := payloads/external/landing-zone/lz_header.bin
 lz_header-type := raw
+endif
+
+ifneq ($(CONFIG_GRUB2_INCLUDE_UROOT),)
+payloads/external/linux/linux/bzImage: linux
+paylaods/u-root/uroot/iniramfs.cpio.lzma: uroot
+
+cbfs-files-y += bzImage
+bzImage-file := payloads/external/linux/linux/bzImage
+bzImage-type := flat-binary
+bzImage-compression := none
+
+cbfs-files-y += initrd
+initrd-file := paylaods/u-root/uroot/iniramfs.cpio.lzma
+initrd-type := flat-binary
+initrd-compression := none
 endif
 
 # U-Boot
