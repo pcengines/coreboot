@@ -1,0 +1,34 @@
+From 668ebbc3fcf525c42a09cbcc1797f05f144adea1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20=C5=BBygowski?= <michal.zygowski@3mdeb.com>
+Date: Sat, 28 Sep 2019 17:09:30 +0200
+Subject: [PATCH] examples/uinit/uinit.go: automate Xen launch
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Michał Żygowski <michal.zygowski@3mdeb.com>
+---
+ examples/uinit/uinit.go | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/examples/uinit/uinit.go b/examples/uinit/uinit.go
+index b0075daf..6bafa4d6 100644
+--- a/examples/uinit/uinit.go
++++ b/examples/uinit/uinit.go
+@@ -14,10 +14,9 @@ import (
+ 
+ var (
+ 	commands = []string{
+-		"/bbin/date",
+-		"/bbin/dhclient -ipv6=false",
+-		"/bbin/ip a",
+-		"/bbin/elvish",
++		"/bbin/mount -t ext4 /dev/sda1 /var",
++		"/bbin/kexec -l -c \"dom0_mem=512M loglvl=all guest_loglvl=all com1=115200,8n1 console=com1 no-real-mode\" --module \"/var/bzImage console=hvc0 earlyprintk=xen nomodeset root=/dev/sda2\" /var/xen.gz",
++		"/bbin/kexec -e",
+ 		"/bbin/shutdown halt",
+ 	}
+ )
+-- 
+2.20.1
+
