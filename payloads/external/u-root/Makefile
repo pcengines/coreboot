@@ -15,7 +15,7 @@
 
 project_name=uroot
 project_dir=$(CURDIR)/uroot
-project_git_repo=github.com/3mdeb/u-root
+project_git_repo=github.com/u-root/u-root
 
 export GOPATH:=$(CURDIR)/uroot
 export PATH:=/usr/local/go/bin:$(GOPATH)/bin:$(PATH)
