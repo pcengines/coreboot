@@ -33,7 +33,7 @@ build: $(project_dir)
 	cp $(project_dir)/arch/x86/boot/bzImage $(project_dir)/bzImage
 
 clean:
-	test -d $(project_dir) && rm $(project_dir)/bzImage
+	test -d $(project_dir) && rm $(project_dir)/bzImage || exit 0
 	test -d $(project_dir) && $(MAKE) -C $(project_dir) clean || exit 0
 
 distclean:
