@@ -26,17 +26,15 @@ $(project_dir):
 	echo "    Cloning $(project_name) with Go"
 	mkdir $(project_dir)
 	go get $(project_git_repo)
+	go get github.com/3mdeb/uinit
 
 build: $(project_dir)
 	cd $(project_dir)/src/$(project_git_repo) ; \
-	git apply $(project_dir)/../0001-examples-uinit-uinit.go-automate-Xen-launch.patch
 	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb \
 		$(project_git_repo)/cmds/core/init \
 		$(project_git_repo)/cmds/core/kexec \
-		$(project_git_repo)/cmds/core/elvish \
 		$(project_git_repo)/cmds/core/mount \
-		$(project_git_repo)/cmds/core/umount \
-		$(project_git_repo)/examples/uinit
+		github.com/3mdeb/uinit
 	cd $(project_dir)
 	lzma -f -k $(project_dir)/initramfs.cpio
 
