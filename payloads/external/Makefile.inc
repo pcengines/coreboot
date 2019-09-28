@@ -239,7 +239,7 @@ endif
 
 ifneq ($(CONFIG_GRUB2_INCLUDE_UROOT),)
 payloads/external/linux/linux/bzImage: linux
-paylaods/u-root/uroot/iniramfs.cpio.lzma: uroot
+payloads/external/u-root/uroot/initramfs.cpio.lzma: uroot
 
 cbfs-files-y += bzImage
 bzImage-file := payloads/external/linux/linux/bzImage
