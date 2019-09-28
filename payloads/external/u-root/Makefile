@@ -28,8 +28,15 @@ $(project_dir):
 	go get $(project_git_repo)
 
 build: $(project_dir)
-	cd $(CURDIR)/uroot/src/$(project_git_repo) && \
-	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb cmds/core/init cmds/core/kexec cmds/core/elvish cmds/core/mount cmds/core/umount $(project_git_repo)/examples/uinit
+	cd $(project_dir)/src/$(project_git_repo) ; \
+	git apply $(project_dir)/../0001-examples-uinit-uinit.go-automate-Xen-launch.patch
+	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb \
+		$(project_git_repo)/cmds/core/init \
+		$(project_git_repo)/cmds/core/kexec \
+		$(project_git_repo)/cmds/core/elvish \
+		$(project_git_repo)/cmds/core/mount \
+		$(project_git_repo)/cmds/core/umount \
+		$(project_git_repo)/examples/uinit
 	cd $(project_dir)
 	lzma -f -k $(project_dir)/initramfs.cpio
 
