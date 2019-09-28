@@ -17,11 +17,8 @@ project_name=uroot
 project_dir=$(CURDIR)/uroot
 project_git_repo=github.com/u-root/u-root
 
-GOPATH=$(CURDIR)/uroot
-PATH:=/usr/local/go:$(PATH)
-
-export PATH
-export GOPATH
+export GOPATH:=$(CURDIR)/uroot
+export PATH:=/usr/local/go/bin:$(GOPATH)/bin:$(PATH)
 
 all: build
 
@@ -31,8 +28,8 @@ $(project_dir):
 	go get $(project_git_repo)
 
 build: $(project_dir)
-	cd $(CURDIR)/uroot/src/github.com/u-root/u-root
-	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb cmds/core/init cmds/core/{kexec,elvish,mount,umount}
+	cd $(CURDIR)/uroot/src/github.com/u-root/u-root && \
+	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb cmds/core/init cmds/core/kexec cmds/core/elvish cmds/core/mount cmds/core/umount github.com/u-root/u-root/examples/uinit
 	cd $(project_dir)
 	lzma -f -k $(project_dir)/initramfs.cpio
 

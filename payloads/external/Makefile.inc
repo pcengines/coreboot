@@ -243,12 +243,12 @@ paylaods/u-root/uroot/iniramfs.cpio.lzma: uroot
 
 cbfs-files-y += bzImage
 bzImage-file := payloads/external/linux/linux/bzImage
-bzImage-type := flat-binary
+bzImage-type := raw
 bzImage-compression := none
 
 cbfs-files-y += initrd
-initrd-file := paylaods/u-root/uroot/iniramfs.cpio.lzma
-initrd-type := flat-binary
+initrd-file := payloads/external/u-root/uroot/initramfs.cpio.lzma
+initrd-type := raw
 initrd-compression := none
 endif
 
