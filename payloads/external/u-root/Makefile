@@ -30,7 +30,7 @@ $(project_dir):
 
 build: $(project_dir)
 	cd $(project_dir)/src/$(project_git_repo) ; \
-	u-root -format=cpio -o $(project_dir)/initramfs.cpio -build=bb \
+	u-root -defaultsh="" -format=cpio -o $(project_dir)/initramfs.cpio -build=bb \
 		$(project_git_repo)/cmds/core/init \
 		$(project_git_repo)/cmds/core/kexec \
 		$(project_git_repo)/cmds/core/mount \
