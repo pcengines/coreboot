@@ -223,7 +223,39 @@ grub2: $(obj)/config.h
 			CONFIG_GRUB2_REVISION_ID=$(CONFIG_GRUB2_REVISION_ID) \
 			CONFIG_GRUB2_EXTRA_MODULES=$(CONFIG_GRUB2_EXTRA_MODULES)
 
+lzheader:
+	$(MAKE) -C payloads/external/landing-zone \
+			CC="$(HOSTCC)"
+
+linux:
+	$(MAKE) -C payloads/external/linux
+
+uroot:
+	$(MAKE) -C payloads/external/u-root
+
 payloads/external/GRUB2/grub2/build/default_payload.elf: grub2
+
+ifneq ($(CONFIG_GRUB2_TRENCHBOOT_DRTM),)
+payloads/external/landing-zone/lz_header.bin: lzheader 
+cbfs-files-y += lz_header
+lz_header-file := payloads/external/landing-zone/lz_header.bin
+lz_header-type := raw
+endif
+
+ifneq ($(CONFIG_GRUB2_INCLUDE_UROOT),)
+payloads/external/linux/linux/bzImage: linux
+payloads/external/u-root/uroot/initramfs.cpio.lzma: uroot
+
+cbfs-files-y += bzImage
+bzImage-file := payloads/external/linux/linux/bzImage
+bzImage-type := raw
+bzImage-compression := none
+
+cbfs-files-y += initrd
+initrd-file := payloads/external/u-root/uroot/initramfs.cpio.lzma
+initrd-type := raw
+initrd-compression := none
+endif
 
 # U-Boot
 

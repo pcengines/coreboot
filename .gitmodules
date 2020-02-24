@@ -42,3 +42,7 @@
 	url = https://review.coreboot.org/amd_blobs.git
 	update = none
 	ignore = dirty
+[submodule "payloads/external/landing-zone"]
+	path = payloads/external/landing-zone
+	url = https://github.com/TrenchBoot/landing-zone.git
+

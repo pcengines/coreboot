@@ -5,7 +5,7 @@ NAME-$(CONFIG_GRUB2_MASTER)=HEAD
 NAME-$(CONFIG_GRUB2_REVISION)=$(CONFIG_GRUB2_REVISION_ID)
 NAME-$(CONFIG_GRUB2_STABLE)=2.04
 
-project_git_repo=https://git.savannah.gnu.org/git/grub.git/
+project_git_repo=https://github.com/3mdeb/grub2.git
 project_dir=grub2
 
 unexport HOSTCC CC LD OBJCOPY STRIP
@@ -13,23 +13,33 @@ MAKEOVERRIDES :=
 
 all: grub2
 
-checkout:
-	echo "    GIT        GRUB2 $(NAME-y)"
-	test -d $(project_dir) || git clone $(project_git_repo) $(project_dir)
-	git -C $(project_dir) fetch
-ifeq ("$(shell test -d $(project_dir) && \
-	(git -C $(project_dir) status --ignored=no --untracked-files=no --porcelain))",)
-	git -C $(project_dir) checkout -f $(TAG-y)
-else
-	echo "WARNING: index/tree not clean, skipping update / force checkout."
-	echo "         Checkout manually with `git -C $(project_dir) checkout -f`."
+clone:
+	echo "    Cloning GRUB2 from Git"
+	git clone $(project_git_repo) $(project_dir)
+
+fetch: clone
+ifeq ($(TAG-y),)
+	echo "Error: The specified tag is invalid"
+ifeq ($(CONFIG_GRUB2_REVISION),y)
+	echo "Error: There is no revision specified for GRUB2"
+	false
 endif
+	false
+endif
+	cd grub2; git show $(TAG-y) >/dev/null 2>&1 ;	if [ $$? -ne 0 ] || \
+		[ "$(TAG-y)" = "origin/master" ]; then \
+		echo "    Fetching new commits from the GRUB2 git repo"; \
+		git fetch; fi
+
+checkout: fetch
+	echo "    Checking out GRUB2 revision $(TAG-y)"
+	cd grub2; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
 grub2/build/config.h: $(CONFIG_DEP) | checkout
 	echo "    CONFIG     GRUB2 $(NAME-y)"
 	rm -rf grub2/build
 	mkdir grub2/build
-	cd grub2 && ./bootstrap ; ./autogen.sh
+	cd grub2 && ./bootstrap && ./autogen.sh
 	cd grub2/build && ../configure CC="$(HOSTCC)" LD="$(LD)" \
 	FREETYPE="pkg-config freetype2" BUILD_FREETYPE="pkg-config freetype2" \
 	TARGET_CC="$(CC)" TARGET_OBJCOPY="$(OBJCOPY)" TARGET_STRIP="$(STRIP)" \
