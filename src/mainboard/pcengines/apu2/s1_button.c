@@ -39,23 +39,6 @@ struct cbmem_vpd {
 	 */
 };
 
-static int flash_vpd(size_t offset, size_t fsize, char *buffer)
-{
-	const struct region_device *boot_dev;
-	struct cbfsf fh;
-	const struct spi_flash *flash;
-
-	flash = boot_device_spi_flash();
-
-	if (cbfs_locate(&fh, boot_dev, name, &type)) {
-		printk(BIOS_WARNING, "Can't locate file in CBFS\n");
-		return 0;
-	}
-	if (flash == NULL) {
-		printk(BIOS_WARNING, "Can't get boot flash device\n");
-		return -1;
-	}
-}
 static int decodeLen(
 		const u32 max_len, const u8 *in, u32 *length, u32 *decoded_len)
 {
@@ -149,7 +132,8 @@ static int replace_scon_tag(void *vpd_buffer, void *output_buffer,
 		return -1;
 
 	strings_offset = 0x600 + sizeof(struct google_vpd_info);
-	char scon_entry[2 + strlen("scon") + 1 + strlen("enabled")];
+	//int scon_entry_len = 2 + strlen("scon") + 1 + strlen("enabled");
+	char scon_entry[12];
 	scon_entry[0] = 0x01;
 	scon_entry[1] = strlen("scon");
 	memcpy(&scon_entry[2], "scon", strlen("scon"));

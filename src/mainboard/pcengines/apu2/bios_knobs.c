@@ -17,10 +17,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <console/console.h>
-#include <program_loading.h>
-#include <cbfs.h>
-#include <commonlib/cbfs.h>
-#include <commonlib/region.h>
 #include <drivers/vpd/vpd.h>
 #include "bios_knobs.h"
 
@@ -65,7 +61,7 @@ static int is_knob_enabled(const char *s)
 u8 check_iommu(void)
 {
 	u8 iommu;
-	iommu = check_knob_value("iommu");
+	iommu = is_knob_enabled("iommu");
 
 	switch (iommu) {
 	case 0:
@@ -99,14 +95,11 @@ u8 check_console(void)
 		return true;
 		break;
 	}
-<<<<<<< HEAD
 
 	return 1;
-=======
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 }
 
-bool check_com2(void)
+int check_com2(void)
 {
 	int com2en = is_knob_enabled("com2en");
 
@@ -124,13 +117,12 @@ bool check_com2(void)
 	}
 }
 
-bool check_boost(void)
+int check_boost(void)
 {
 	int boost = is_knob_enabled("boosten");
 
 	switch (boost) {
 	case 0:
-<<<<<<< HEAD
 		return 0;
 		break;
 	case 1:
@@ -151,10 +143,10 @@ static u8 check_uart(char uart_letter)
 
 	switch (uart_letter) {
 	case 'c':
-		uarten = check_knob_value("uartc");
+		uarten = is_knob_enabled("uartc");
 		break;
 	case 'd':
-		uarten = check_knob_value("uartd");
+		uarten = is_knob_enabled("uartd");
 		break;
 	default:
 		uarten = -1;
@@ -164,19 +156,13 @@ static u8 check_uart(char uart_letter)
 	switch (uarten) {
 	case 0:
 		return 0;
-=======
-		return false;
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 		break;
 	case 1:
 		return 1;
 		break;
 	default:
-		printk(BIOS_INFO, "Enable CPU boost\n");
-		return true;
 		break;
 	}
-<<<<<<< HEAD
 
 	return 0;
 }
@@ -189,8 +175,6 @@ inline u8 check_uartc(void)
 inline u8 check_uartd(void)
 {
 	return check_uart('d');
-=======
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 }
 
 u8 check_ehci0(void)
@@ -205,7 +189,6 @@ u8 check_ehci0(void)
 		return 1;
 		break;
 	default:
-<<<<<<< HEAD
 		printk(BIOS_INFO,
 			"Missing or invalid ehci0 knob, enable ehci0.\n");
 		break;
@@ -221,7 +204,7 @@ u8 check_mpcie2_clk(void)
 	//
 	// Find the mPCIe2 clock item
 	//
-	mpcie2_clk = check_knob_value("mpcie2_clk");
+	mpcie2_clk = is_knob_enabled("mpcie2_clk");
 
 	switch (mpcie2_clk) {
 	case 0:
@@ -229,17 +212,10 @@ u8 check_mpcie2_clk(void)
 		break;
 	case 1:
 		return 1;
-=======
-		printk(BIOS_INFO,"Enable EHCI0.\n");
-		return true;
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 		break;
 	}
-<<<<<<< HEAD
 
 	return 0;
-=======
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 }
 
 u8 check_sd3_mode(void)
@@ -258,11 +234,8 @@ u8 check_sd3_mode(void)
 		return false;
 		break;
 	}
-<<<<<<< HEAD
 
 	return 0;
-=======
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
 }
 
 static int _valid(char ch, int base)
@@ -370,44 +343,38 @@ u16 get_watchdog_timeout(void)
 		return timeout_ro;
 }
 
-bool check_uartc(void)
-{
-	u8 uartc = is_knob_enabled("uartc");
+// u8 check_uartc(void)
+// {
+// 	u8 uartc = is_knob_enabled("uartc");
 
-	switch (uartc) {
-	case 0:
-		return false;
-		break;
-	case 1:
-		return true;
-		break;
-	default:
-		printk(BIOS_INFO, "Disable UARTC and enable GPIO0\n");
-		return false;
-		break;
-	}
-}
+// 	switch (uartc) {
+// 	case 0:
+// 		return false;
+// 		break;
+// 	case 1:
+// 		return true;
+// 		break;
+// 	default:
+// 		printk(BIOS_INFO, "Disable UARTC and enable GPIO0\n");
+// 		return false;
+// 		break;
+// 	}
+// }
 
-bool check_uartd(void)
-{
-	u8 uartd = is_knob_enabled("uartd");
+// u8 check_uartd(void)
+// {
+// 	u8 uartd = is_knob_enabled("uartd");
 
-	switch (uartd) {
-	case 0:
-		return false;
-		break;
-	case 1:
-		return true;
-		break;
-	default:
-		printk(BIOS_INFO, "Disable UARTD and enable GPIO1\n");
-		return false;
-		break;
-	}
-}
-
-<<<<<<< HEAD
-	return timeout;
-}
-=======
->>>>>>> src/mainboard/pcengines/apu2/bios_knobs.c: rewrite knobs to use VPD
+// 	switch (uartd) {
+// 	case 0:
+// 		return false;
+// 		break;
+// 	case 1:
+// 		return true;
+// 		break;
+// 	default:
+// 		printk(BIOS_INFO, "Disable UARTD and enable GPIO1\n");
+// 		return false;
+// 		break;
+// 	}
+// }

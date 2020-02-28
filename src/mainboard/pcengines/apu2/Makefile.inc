@@ -17,6 +17,11 @@
 bootblock-y += pmutil.c
 bootblock-y += bootblock.c
 bootblock-y += bios_knobs.c
+bootblock-y += ../../../drivers/vpd/vpd.c
+bootblock-y += ../../../drivers/vpd/vpd_cbmem.c
+bootblock-y += ../../../drivers/vpd/vpd_decode.c
+bootblock-y += ../../../lib/imd_cbmem.c
+bootblock-y += ../../../lib/imd.c
 
 romstage-y += bios_knobs.c
 romstage-y += BiosCallOuts.c

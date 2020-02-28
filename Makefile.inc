@@ -656,11 +656,7 @@ install-git-commit-clangfmt:
 include util/crossgcc/Makefile.inc
 
 .PHONY: tools
-<<<<<<< HEAD
-tools: $(objutil)/kconfig/conf $(objutil)/kconfig/toada $(CBFSTOOL) $(objutil)/cbfstool/cbfs-compression-tool $(FMAPTOOL) $(RMODTOOL) $(IFWITOOL) $(objutil)/nvramtool/nvramtool $(objutil)/sconfig/sconfig $(IFDTOOL) $(CBOOTIMAGE) $(AMDFWTOOL) $(AMDCOMPRESS) $(FUTILITY) $(BINCFG) $(IFITTOOL) $(objutil)/supermicro/smcbiosinfo
-=======
-tools: $(objutil)/kconfig/conf $(CBFSTOOL) $(objutil)/cbfstool/cbfs-compression-tool $(FMAPTOOL) $(RMODTOOL) $(IFWITOOL) $(objutil)/nvramtool/nvramtool $(ROMCC_BIN) $(objutil)/sconfig/sconfig $(IFDTOOL) $(CBOOTIMAGE) $(AMDFWTOOL) $(FUTILITY) $(BINCFG) $(IFITTOOL) $(VPDTOOL)
->>>>>>> Makefile.inc: compile vpdtool during build process
+tools: $(objutil)/kconfig/conf $(objutil)/kconfig/toada $(CBFSTOOL) $(objutil)/cbfstool/cbfs-compression-tool $(FMAPTOOL) $(RMODTOOL) $(IFWITOOL) $(objutil)/nvramtool/nvramtool $(objutil)/sconfig/sconfig $(IFDTOOL) $(CBOOTIMAGE) $(AMDFWTOOL) $(AMDCOMPRESS) $(FUTILITY) $(BINCFG) $(IFITTOOL) $(VPDTOOL) $(objutil)/supermicro/smcbiosinfo
 
 ###########################################################################
 # Common recipes for all stages
@@ -1174,6 +1170,7 @@ ifeq ($(CONFIG_VPD),y)
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartc=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s uartd=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s pxen=disabled
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s iommu=disabled
 	$(VPDTOOL) -f $@.tmp -i RO_VPD -s watchdog=0
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s scon=enabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s usben=enabled
@@ -1182,11 +1179,12 @@ ifeq ($(CONFIG_VPD),y)
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s sd3mode=disabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartc=disabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s uartd=disabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s pxen=enabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s pxen=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s iommu=disabled
 	$(VPDTOOL) -f $@.tmp -i RW_VPD -s watchdog=0
-ifneq ($(CONFIG_BOARD_PCENGINES_APU2),y)
-	$(VPDTOOL) -f $@.tmp -i RO_VPD -s ehcien=enabled
-	$(VPDTOOL) -f $@.tmp -i RW_VPD -s ehcien=enabled
+ifeq ($(CONFIG_BOARD_PCENGINES_APU2),y)
+	$(VPDTOOL) -f $@.tmp -i RO_VPD -s ehcien=disabled
+	$(VPDTOOL) -f $@.tmp -i RW_VPD -s ehcien=disabled
 endif
 endif
 

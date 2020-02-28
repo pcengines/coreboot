@@ -125,10 +125,12 @@ config FORCE_MPCIE2_CLK
 config FMDFILE
 	string
 	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/vboot-rw-ab.fmd" if VBOOT
+	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/board.fmd" if VPD
 
 config CBFS_SIZE
 	hex
 	default 0x005bb000 if VBOOT
+	default 0x006bb000 if VPD
 	default 0x00800000
 
 config VBOOT
