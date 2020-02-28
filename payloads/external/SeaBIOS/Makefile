@@ -36,7 +36,8 @@ checkout: fetch
 	echo "    Checking out SeaBIOS revision $(TAG-y)"
 	cd seabios; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
-config: checkout
+# config: checkout
+config:
 	echo "    CONFIG     SeaBIOS $(TAG-y)"
 	echo "CONFIG_COREBOOT=y" > seabios/.config
 ifeq ($(CONFIG_CONSOLE_SERIAL)$(CONFIG_DRIVERS_UART_8250IO),yy)
