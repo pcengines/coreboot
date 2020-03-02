@@ -37,8 +37,10 @@ VERSION:= $(shell ./util/getversion.sh)
 CFLAGS  = -g -Iinclude/ -Iinclude/lib -Werror -Wall -D'VPD_VERSION="$(VERSION)"'
 LDFLAGS = -luuid
 BINARY  = vpdtool
+BINARY_STATIC  = vpdtool_st
 
 LIB_OBJS= \
+	lib/flashrom.o \
 	lib/fmap.o \
 	lib/lib_smbios.o \
 	lib/lib_vpd.o \
@@ -49,15 +51,18 @@ LIB_OBJS= \
 
 OBJS = $(LIB_OBJS) vpd.o
 
-all: $(BINARY)
+all: $(BINARY) $(BINARY_STATIC)
 
 $(BINARY): $(OBJS)
-	$(CC) -o $(BINARY) $(OBJS) $(LDFLAGS)
+	$(CC) -o $@ $? $(LDFLAGS)
+
+$(BINARY_STATIC): $(OBJS)
+	$(CC) -o $@ $? -static $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJS) $(BINARY)
+	rm -f $(OBJS) $(BINARY) $(BINARY_STATIC)
 
 .PHONY: clean test all

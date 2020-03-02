@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <uuid/uuid.h>
+#include "lib/flashrom.h"
 #include "lib/fmap.h"
 #include "lib/lib_vpd.h"
 #include "lib/lib_smbios.h"
@@ -49,7 +50,7 @@ enum FileFlag {
   HAS_VPD_2_0 = (1 << 1),
   HAS_VPD_1_2 = (1 << 2),
   /* TODO(yjlou): refine those variables in main() to here:
-   *              overwrite_it, modified. */
+   *              write_back_to_flash, overwrite_it, modified. */
 } file_flag = 0;
 
 
@@ -112,6 +113,31 @@ off_t vpd_2_0_offset = GOOGLE_VPD_2_0_OFFSET;  /* VPD 2.0 data address. */
  * and freed at end of main(). */
 uint8_t *spd_data = NULL;
 int32_t spd_len = 256;  /* max value for DDR3 */
+
+/* Creates a temporary file and return the filename, or NULL for any failure.
+ */
+const char *myMkTemp() {
+  char tmp_file[] = "/tmp/vpd.flashrom.XXXXXX";
+  struct TempfileNode *node;
+  int fd;
+
+  fd = mkstemp(tmp_file);
+  if (fd < 0) {
+    fprintf(stderr, "mkstemp(%s) failed\n", tmp_file);
+    return NULL;
+  }
+
+  close(fd);
+  node = (struct TempfileNode*)malloc(sizeof(struct TempfileNode));
+  assert(node);
+  node->next = tempfile_list;
+  node->filename = strdup(tmp_file);
+  assert(node->filename);
+  tempfile_list = node;
+
+  return node->filename;
+}
+
 
 /*  Erases all files created by myMkTemp
  */
@@ -426,6 +452,34 @@ static uint8_t *readFileContent(const char* filename, uint32_t *filesize) {
   return read_buf;
 }
 
+
+vpd_err_t getVpdPartitionFromFullBios(uint32_t* offset, uint32_t* size) {
+  const char *filename;
+  uint8_t *buf;
+  uint32_t buf_size;
+  vpd_err_t retval;
+
+  filename = myMkTemp();
+  if (!filename) {
+    return VPD_ERR_SYSTEM;
+  }
+
+  if (FLASHROM_OK != flashromFullRead(filename)) {
+    fprintf(stderr, "[WARN] Cannot read full BIOS.\n");
+    return VPD_ERR_ROM_READ;
+  }
+  assert((buf = readFileContent(filename, &buf_size)));
+  if (findVpdPartition(buf, buf_size, offset, size)) {
+    fprintf(stderr, "[WARN] Cannot get eps_base from full BIOS.\n");
+    retval = VPD_ERR_INVALID;
+  } else {
+    retval = VPD_OK;
+  }
+  free(buf);
+  return retval;
+}
+
+
 /* Below 2 functions are the helper functions for extract data from VPD 1.x
  * binary-encoded structure.
  * Note that the returning pointer is a static buffer. Thus the later call will
@@ -467,6 +521,32 @@ end_of_func:
   return buf;
 }
 
+vpd_err_t loadRawFile(const char *filename, struct PairContainer *container) {
+  uint8_t *vpd_buf;
+  uint32_t index, file_size;
+  vpd_err_t retval = VPD_OK;
+
+  if (!(vpd_buf = readFileContent(filename, &file_size))) {
+    fprintf(stderr, "[ERROR] Cannot LoadRawFile('%s').\n", filename);
+    return VPD_ERR_SYSTEM;
+  }
+
+  for (index = 0;
+       index < file_size &&
+       vpd_buf[index] != VPD_TYPE_TERMINATOR &&
+       vpd_buf[index] != VPD_TYPE_IMPLICIT_TERMINATOR;) {
+    retval = decodeToContainer(container, file_size, vpd_buf, &index);
+    if (VPD_OK != retval) {
+      fprintf(stderr, "decodeToContainer() error.\n");
+      goto teardown;
+    }
+  }
+  file_flag |= HAS_VPD_2_0;
+
+teardown:
+  free(vpd_buf);
+  return retval;
+}
 
 vpd_err_t loadFile(const char *filename, struct PairContainer *container,
              int overwrite_it) {
@@ -493,7 +573,23 @@ vpd_err_t loadFile(const char *filename, struct PairContainer *container,
       eps_base = vpd_offset;
     }
   } else {
+    /* We cannot parse out the VPD partition address from given file.
+     * Then, try to read the whole BIOS chip. */
+    uint32_t offset, size;
+    if (!eps_base_force_specified) {
+      retval = getVpdPartitionFromFullBios(&offset, &size);
+      if (VPD_OK == retval) {
+        eps_base = offset;
+        vpd_size = size;
+      } else {
+        if (overwrite_it) {
+          retval = VPD_OK;
+        } else {
+          fprintf(stderr, "[ERROR] getVpdPartitionFromFullBios() failed.");
+        }
         goto teardown;
+      }
+    }
   }
 
   /* Update the following variables:
@@ -713,8 +809,8 @@ teardown:
 }
 
 
-vpd_err_t saveFile(const struct PairContainer *container,
-                   const char *filename) {
+vpd_err_t saveFile(const struct PairContainer *container, const char *filename,
+             int write_back_to_flash) {
   FILE *fp;
   unsigned char eps[1024];
   int eps_len = 0;
@@ -774,7 +870,6 @@ vpd_err_t saveFile(const struct PairContainer *container,
 
   file_seek = vpd_offset;
 
-
   /* write EPS */
   fseek(fp, file_seek + eps_offset, SEEK_SET);
   if (fwrite(eps, eps_len, 1, fp) != 1) {
@@ -824,6 +919,7 @@ static void usage(const char *progname) {
   printf("      -i <partition>   Specify VPD partition name in fmap.\n");
   printf("      -l               List content in the file.\n");
   printf("      --sh             Dump content for shell script.\n");
+  printf("      --raw            Parse from a raw blob (without headers).\n");
   printf("      -0/--null-terminated\n");
   printf("                       Dump content in null terminate format.\n");
   printf("      -O               Overwrite and re-format VPD partition.\n");
@@ -854,6 +950,7 @@ int main(int argc, char *argv[]) {
     {"overwrite", 0, 0, 'O'},
     {"filter", 0, 0, 'g'},
     {"sh", 0, &export_type, VPD_EXPORT_AS_PARAMETER},
+    {"raw", 0, 0, 'R'},
     {"null-terminated", 0, 0, '0'},
     {"delete", 0, 0, 'd'},
     {0, 0, 0, 0}
@@ -861,12 +958,16 @@ int main(int argc, char *argv[]) {
   char *filename = NULL;
   const char *load_file = NULL;
   const char *save_file = NULL;
+  const char *tmp_part_file = NULL;
+  const char *tmp_full_file = NULL;
   uint8_t *key_to_export = NULL;
+  int write_back_to_flash = 0;
   int list_it = 0;
   int overwrite_it = 0;
   int modified = 0;
   int num_to_delete;
   int read_from_file = 0;
+  int raw_input = 0;
 
   initContainer(&file);
   initContainer(&set_argument);
@@ -952,6 +1053,10 @@ int main(int argc, char *argv[]) {
         export_type = VPD_EXPORT_NULL_TERMINATE;
         break;
 
+      case 'R':
+        raw_input = 1;
+        break;
+
       case 0:
         break;
 
@@ -983,19 +1088,57 @@ int main(int argc, char *argv[]) {
     goto teardown;
   }
 
+  if (raw_input && !filename) {
+    fprintf(stderr, "[ERROR] Needs -f FILE for raw input.\n");
+    retval = VPD_ERR_SYNTAX;
+    goto teardown;
+  }
+
+  if (raw_input && (lenOfContainer(&set_argument) ||
+                    lenOfContainer(&del_argument))) {
+    fprintf(stderr, "[ERROR] Changing in raw mode is not supported.\n");
+    retval = VPD_ERR_SYNTAX;
+    goto teardown;
+  }
+
+  tmp_part_file = myMkTemp();
+  tmp_full_file = myMkTemp();
+  if (!tmp_part_file || !tmp_full_file) {
+    fprintf(stderr, "[ERROR] Failed creating temporary files.\n");
+    retval = VPD_ERR_SYSTEM;
+    goto teardown;
+  }
+
   /* to avoid malicious attack, we replace suspicious chars. */
   fmapNormalizeAreaName(fmap_vpd_area_name);
 
   /* if no filename is specified, call flashrom to read from flash. */
   if (!filename) {
-    fprintf(stderr, "[ERROR] filename not provided.\n");
+    if (FLASHROM_OK != flashromPartialRead(tmp_full_file,
+                                           fmap_vpd_area_name)) {
+      fprintf(stderr, "[WARN] flashromPartialRead() failed, try full read.\n");
+      /* Try to read whole file */
+      if (FLASHROM_OK != flashromFullRead(tmp_full_file)) {
+        fprintf(stderr, "[ERROR] flashromFullRead() error!\n");
+        retval = VPD_ERR_ROM_READ;
         goto teardown;
+      } else {
+        /* Success! Then the fmap_vpd_area_name is changed for later use. */
+      }
+    }
+
+    write_back_to_flash = 1;
+    load_file = tmp_full_file;
+    save_file = tmp_full_file;
   } else {
     load_file = filename;
     save_file = filename;
   }
 
-  retval = loadFile(load_file, &file, overwrite_it);
+  if (raw_input)
+    retval = loadRawFile(load_file, &file);
+  else
+    retval = loadFile(load_file, &file, overwrite_it);
   if (VPD_OK != retval) {
     fprintf(stderr, "loadFile('%s') error.\n", load_file);
     goto teardown;
@@ -1075,10 +1218,19 @@ int main(int argc, char *argv[]) {
       goto teardown;
     }
 
-    retval = saveFile(&file, save_file);
+    retval = saveFile(&file, save_file, write_back_to_flash);
     if (VPD_OK != retval) {
       fprintf(stderr, "saveFile('%s') error: %d\n", filename, retval);
       goto teardown;
+    }
+
+    if (write_back_to_flash) {
+      if (FLASHROM_OK != flashromPartialWrite(save_file,
+                                              fmap_vpd_area_name)) {
+        fprintf(stderr, "flashromPartialWrite() error.\n");
+        retval = VPD_ERR_ROM_WRITE;
+        goto teardown;
+      }
     }
   }
 
