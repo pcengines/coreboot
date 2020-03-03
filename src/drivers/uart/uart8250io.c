@@ -109,7 +109,8 @@ void uart_init(int idx)
 		unsigned int div;
 		div = uart_baudrate_divisor(get_uart_baudrate(),
 			uart_platform_refclk(), uart_input_clock_divider());
-		if ((check_com2() || idx == 1) &&
+		// if ((check_com2() || idx == 1) &&
+		if ((idx == 1) &&
 		    !CONFIG(BOARD_PCENGINES_APU5))
 			port_index = 1;
 		else

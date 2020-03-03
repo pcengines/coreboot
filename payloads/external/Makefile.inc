@@ -110,10 +110,12 @@ payloads/external/SeaBIOS/seabios/out/autoversion.h: payloads/external/SeaBIOS/s
 
 # add a SeaBIOS bootorder file
 ifneq ($(strip $(CONFIG_SEABIOS_BOOTORDER_FILE)),)
+ifneq ($(CONFIG_SEABIOS_BOOTORDER_IN_FMAP),y)
 cbfs-files-y += bootorder
 bootorder-file := $(strip $(CONFIG_SEABIOS_BOOTORDER_FILE))
 bootorder-type := raw
 bootorder-align := 0x1000
+endif
 endif
 
 # add a SeaBIOS bootorder_map file
@@ -270,14 +272,13 @@ payloads/external/Memtest86Plus/memtest86plus/memtest: $(DOTCONFIG)
 
 # sortbootorder
 
-payloads/external/sortbootorder/sortbootorder/sortbootorder.elf sortbootorder:
+payloads/external/sortbootorder/sortbootorder/sortbootorder.elf sortbootorder: $(DOTCONFIG)
 	$(MAKE) -C payloads/external/sortbootorder all \
 		TARGET_APU1=$(CONFIG_BOARD_PCENGINES_APU1) \
 		SORTBOOTORDER_REVISION=$(CONFIG_SORTBOOTORDER_REVISION) \
 		SORTBOOTORDER_REVISION_ID=$(CONFIG_SORTBOOTORDER_REVISION_ID) \
 		SORTBOOTORDER_MASTER=$(CONFIG_SORTBOOTORDER_MASTER) \
 		SORTBOOTORDER_STABLE=$(CONFIG_SORTBOOTORDER_STABLE) \
-
 
 cbfs-files-$(CONFIG_SORTBOOTORDER_SECONDARY_PAYLOAD) += img/setup
 img/setup-file := payloads/external/sortbootorder/sortbootorder/sortbootorder.elf

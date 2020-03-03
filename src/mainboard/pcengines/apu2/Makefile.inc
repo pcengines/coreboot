@@ -17,6 +17,11 @@
 bootblock-y += pmutil.c
 bootblock-y += bootblock.c
 bootblock-y += bios_knobs.c
+bootblock-y += ../../../drivers/vpd/vpd.c
+bootblock-y += ../../../drivers/vpd/vpd_cbmem.c
+bootblock-y += ../../../drivers/vpd/vpd_decode.c
+bootblock-y += ../../../lib/imd_cbmem.c
+bootblock-y += ../../../lib/imd.c
 
 romstage-y += bios_knobs.c
 romstage-y += BiosCallOuts.c
@@ -39,3 +44,13 @@ SPD_SOURCES  = HYNIX-2G-1333
 SPD_SOURCES += HYNIX-4G-1333-ECC
 
 subdirs-y += variants/$(VARIANT_DIR)
+
+LINUX_OPTIONS=-I "initrd.cpio.xz"
+LINUX_OPTIONS+=-C "console=ttyS1,115200 iomem=relaxed"
+
+cbfs-files-y += linux/payload
+linux/payload-file := "bzImage"
+linux/payload-type := payload
+linux/payload-compression := none
+linux/payload-options := $(LINUX_OPTIONS)
+linux/payload-COREBOOT-position := 0x100

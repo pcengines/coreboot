@@ -125,10 +125,12 @@ config FORCE_MPCIE2_CLK
 config FMDFILE
 	string
 	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/vboot-rw-ab.fmd" if VBOOT
+	default "src/mainboard/$(CONFIG_MAINBOARD_DIR)/board.fmd" if VPD
 
 config CBFS_SIZE
 	hex
-	default 0x0020C000 if VBOOT
+	default 0x005bb000 if VBOOT
+	default 0x006bb000 if VPD
 	default 0x00800000
 
 config VBOOT
@@ -163,5 +165,8 @@ config AGESA_USE_1_0_0_4_HEADER
 	  workarounds the problem, however some headers changes between blob
 	  revisions. This option removes the changes in headers introduced
 	  with AGESA 1.0.0.A to fit the 1.0.0.4 revision.
+
+config VPD
+	select AMDFW_OUTSIDE_CBFS
 
 endif # BOARD_PCENGINES_APU2

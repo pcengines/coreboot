@@ -33,5 +33,6 @@ void bootblock_mainboard_early_init(void)
 		nuvoton_enable_serial(SERIAL2_DEV, 0x2f8);
 
 	if ((check_com2() || (CONFIG_UART_FOR_CONSOLE == 1)))
+	//if ((CONFIG_UART_FOR_CONSOLE == 1))
 		nuvoton_enable_serial(SERIAL2_DEV, 0x2f8);
 }
