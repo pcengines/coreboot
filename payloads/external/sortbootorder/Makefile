@@ -37,8 +37,7 @@ checkout: fetch
 	echo "    Checking out sortbootorder revision $(TAG-y)"
 	cd sortbootorder; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
-# build: checkout
-build:
+build: checkout
 	echo "    MAKE       sortbootorder"
 	$(MAKE) -C sortbootorder VERSION=$(TAG-y) APU1=$(TARGET_APU1)
 
