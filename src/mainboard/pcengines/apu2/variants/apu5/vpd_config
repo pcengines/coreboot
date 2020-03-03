@@ -1,0 +1,11 @@
+pxen=disabled
+scon=enabled
+usben=enabled
+uartc=disabled
+uartd=disabled
+mpcie2_clk=disabled
+boosten=enabled
+sd3mode=disabled
+iommu=disabled
+watchdog=0
+ehcien=disabled
