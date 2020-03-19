@@ -20,6 +20,16 @@
 #include <Fch/Fch.h>
 #include <amdblocks/acpimmio.h>
 
+#define PCIE_NIC_RESET_ID	1
+
+#if CONFIG(BOARD_PCENGINES_APU2)
+#define	PCIE_GFX_RESET_ID	55
+#define PCIE_PORT3_RESET_ID	51
+#else
+#define	PCIE_GFX_RESET_ID	PCIE_NIC_RESET_ID
+#define PCIE_PORT3_RESET_ID	PCIE_NIC_RESET_ID
+#endif
+
 static const PCIe_PORT_DESCRIPTOR PortList[] = {
 	{
 		0,
@@ -28,7 +38,8 @@ static const PCIe_PORT_DESCRIPTOR PortList[] = {
 				HotplugDisabled,
 				PcieGenMaxSupported,
 				PcieGenMaxSupported,
-				AspmDisabled, 0x01, 0)
+				AspmL0sL1, PCIE_PORT3_RESET_ID,
+				ClkPmSupportEnabled)
 	},
 	/* Initialize Port descriptor (PCIe port, Lanes 1, PCI Device Number 2, ...) */
 	{
@@ -38,7 +49,8 @@ static const PCIe_PORT_DESCRIPTOR PortList[] = {
 				HotplugDisabled,
 				PcieGenMaxSupported,
 				PcieGenMaxSupported,
-				AspmDisabled, 0x02, 0)
+				AspmL0sL1, PCIE_NIC_RESET_ID,
+				ClkPmSupportEnabled)
 	},
 	/* Initialize Port descriptor (PCIe port, Lanes 2, PCI Device Number 2, ...) */
 	{
@@ -48,7 +60,8 @@ static const PCIe_PORT_DESCRIPTOR PortList[] = {
 				HotplugDisabled,
 				PcieGenMaxSupported,
 				PcieGenMaxSupported,
-				AspmDisabled, 0x03, 0)
+				AspmL0sL1, PCIE_NIC_RESET_ID,
+				ClkPmSupportEnabled)
 	},
 	/* Initialize Port descriptor (PCIe port, Lanes 3, PCI Device Number 2, ...) */
 	{
@@ -58,7 +71,8 @@ static const PCIe_PORT_DESCRIPTOR PortList[] = {
 				HotplugDisabled,
 				PcieGenMaxSupported,
 				PcieGenMaxSupported,
-				AspmDisabled, 0x04, 0)
+				AspmL0sL1, PCIE_NIC_RESET_ID,
+				ClkPmSupportEnabled)
 	},
 	/* Initialize Port descriptor (PCIe port, Lanes 4-7, PCI Device Number 4, ...) */
 	{
@@ -68,7 +82,8 @@ static const PCIe_PORT_DESCRIPTOR PortList[] = {
 				HotplugDisabled,
 				PcieGenMaxSupported,
 				PcieGenMaxSupported,
-				AspmDisabled, 0x05, 0)
+				AspmL0sL1, PCIE_GFX_RESET_ID,
+				ClkPmSupportEnabled)
 	}
 };
 
