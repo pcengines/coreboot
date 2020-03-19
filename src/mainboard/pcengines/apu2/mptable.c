@@ -19,6 +19,7 @@
 #include <device/pci.h>
 #include <stdint.h>
 #include <southbridge/amd/common/amd_pci_util.h>
+#include <northbridge/amd/pi/nb_common.h>
 
 static void *smp_write_config_table(void *v)
 {
@@ -52,6 +53,11 @@ static void *smp_write_config_table(void *v)
 	u8 ioapic_ver = (io_apic_read(VIO_APIC_VADDR, 0x01) & 0xFF);
 
 	smp_write_ioapic(mc, ioapic_id, ioapic_ver, VIO_APIC_VADDR);
+
+	ioapic_id = (io_apic_read((void *)IO_APIC2_ADDR, 0x00) >> 24);
+	ioapic_ver = (io_apic_read((void *)IO_APIC2_ADDR, 0x01) & 0xFF);
+
+	smp_write_ioapic(mc, ioapic_id, ioapic_ver, (void *)IO_APIC2_ADDR);
 
 	/* I/O Ints:    Type    Polarity    Trigger     Bus ID   IRQ    APIC ID PIN# */
 #define IO_LOCAL_INT(type, intr, apicid, pin)				\
