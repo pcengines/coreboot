@@ -35,7 +35,7 @@ endif
 
 checkout: fetch
 	echo "    Checking out sortbootorder revision $(TAG-y)"
-	cd sortbootorder; git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
+	cd $(project_dir); git checkout master; git branch -D coreboot 2>/dev/null; git checkout -b coreboot $(TAG-y)
 
 build: checkout
 	echo "    MAKE       sortbootorder"
