@@ -23,6 +23,7 @@ Method(_OSC,4)
 /* 0:11.0 - SATA */
 Device(STCR) {
 	Name(_ADR, 0x00110000)
+	Name(_PRW, Package() {0x1e, 3})
 } /* end STCR */
 
 /* 0:14.0 - SMBUS */
