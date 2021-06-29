@@ -454,6 +454,10 @@ static void mainboard_final(void *chip_info)
 	gpio_set(GPIO_58, 1);
 	gpio_set(GPIO_59, 1);
 
+	/* Clear ACPI events */
+	outw(inw(ACPI_PM_EVT_BLK), ACPI_PM_EVT_BLK);
+	outl(inl(ACPI_GPE0_BLK), ACPI_GPE0_BLK);
+
 	if (!check_console()) {
 	/*The console is disabled, check if S1 is pressed and enable if so */
 #if CONFIG(BOARD_PCENGINES_APU5)
